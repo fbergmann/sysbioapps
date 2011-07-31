@@ -1,0 +1,29 @@
+﻿@using Welcome
+@{
+    ViewBag.Title = "Software Matrix";
+}
+
+
+
+<p style="text-align: right; float:right">
+    <a id="cmdFS" href="../../pivot-software-matrix.html" title="Display matrix in Fullscreen">Fullscreen</a>
+</p>
+<h2>Software Matrix</h2>
+<p style="text-align:justify">
+    The <a href="http://sbml.org/SBML_Software_Guide">SBML Software Guide</a> 
+    as found on the SBML homepage provides a list of software packages known
+    to work with SBML. In May of 2011 a new call was made for tool authors to
+    submit their tools for inclusion. This survey is ongoing and you can still 
+    <a href="http://sbml.org/SBML_Software_Guide/SBML_Software_Details_Entry_Questionnaire">
+    submit your entry</a>.  
+</p>
+
+@Html.WebPage(@Url.Content("~/Content/pivot-software-small.html"));
+
+<script language="javascript">
+   //<![CDATA[
+    $(document).ready(function () {
+        $('#cmdFS').button();
+    });
+//]]>
+</script>

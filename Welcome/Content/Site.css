@@ -326,3 +326,10 @@ div#title {
 .tri-state {
     width: 6em;
 }
+  #silverlightControlHost {
+            height: 100%;
+            text-align:center;
+			display: none;
+    }
+	#notWindowsOrMac {		
+	}
