@@ -19,5 +19,15 @@ namespace Welcome.Controllers
         {
             return View();
         }
+
+        public ActionResult Software()
+        {
+            return View();
+        }
+
+        public ActionResult Services()
+        {
+            return View();
+        }
     }
 }
