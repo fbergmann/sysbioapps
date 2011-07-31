@@ -1,0 +1,138 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" >
+
+<head>
+    <meta http-equiv="expires" content="-1"></meta>
+
+    <title>SoftwareMatrix</title>
+    <style type="text/css">
+    html, body {
+            height: 100%;
+            overflow: auto;
+    }
+    body {
+            padding: 0;
+            margin: 0;
+    }
+    #silverlightControlHost {
+            height: 100%;
+            text-align:center;
+			display: none;
+    }
+	#notWindowsOrMac {		
+	}
+    </style>
+    <script type="text/javascript" src="Scripts/jquery-1.3.2.js"></script>
+    <script type="text/javascript" src="Scripts/jquery.client.js"></script>
+    <script type="text/javascript" src="Scripts/Silverlight.js"></script>
+    <script type="text/javascript">
+	    $(document).ready(function() {
+		   var os = $.client.os;
+		   if ( os != "Windows" && os != "Mac")
+		   {				
+				$("#silverlightControlHost").hide();
+				$("#notWindowsOrMac").show();
+		   }
+		   else
+		   {
+				enableControls();
+		   }
+		
+		});
+		function enableControls() {
+			$("#notWindowsOrMac").hide();
+			$("#silverlightControlHost").show();
+		}
+        function onSilverlightError(sender, args) {
+            var appSource = "";
+            if (sender != null && sender != 0) {
+              appSource = sender.getHost().Source;
+            }
+            
+            var errorType = args.ErrorType;
+            var iErrorCode = args.ErrorCode;
+
+            if (errorType == "ImageError" || errorType == "MediaError") {
+              return;
+            }
+
+            var errMsg = "Unhandled Error in Silverlight Application " +  appSource + "\n" ;
+
+            errMsg += "Code: "+ iErrorCode + "    \n";
+            errMsg += "Category: " + errorType + "       \n";
+            errMsg += "Message: " + args.ErrorMessage + "     \n";
+
+            if (errorType == "ParserError") {
+                errMsg += "File: " + args.xamlFile + "     \n";
+                errMsg += "Line: " + args.lineNumber + "     \n";
+                errMsg += "Position: " + args.charPosition + "     \n";
+            }
+            else if (errorType == "RuntimeError") {           
+                if (args.lineNumber != 0) {
+                    errMsg += "Line: " + args.lineNumber + "     \n";
+                    errMsg += "Position: " +  args.charPosition + "     \n";
+                }
+                errMsg += "MethodName: " + args.methodName + "     \n";
+            }
+
+            throw new Error(errMsg);
+        }
+    </script>
+    <link rel='stylesheet' type='text/css' href= "Content/Site.css" /> 
+</head>
+<body style="background: #fff;">
+    <form id="form1" runat="server" style="height:97%">
+	<div id="notWindowsOrMac">
+		<table style="border:none">
+			<tr>
+			<td style="border:none">
+				<object id="scPlayer"  width="500" height="400" type="application/x-shockwave-flash" 
+				data="http://content.screencast.com/users/fbergman/folders/Jing/media/18879a12-f02a-428d-bdd8-05581b4ce6ec/jingswfplayer.swf" > <param name="movie" value="http://content.screencast.com/users/fbergman/folders/Jing/media/18879a12-f02a-428d-bdd8-05581b4ce6ec/jingswfplayer.swf" /> <param name="quality" value="high" /> <param name="bgcolor" value="#FFFFFF" /> <param name="flashVars" value="thumb=http://content.screencast.com/users/fbergman/folders/Jing/media/18879a12-f02a-428d-bdd8-05581b4ce6ec/FirstFrame.jpg&containerwidth=1003&containerheight=800&content=http://content.screencast.com/users/fbergman/folders/Jing/media/18879a12-f02a-428d-bdd8-05581b4ce6ec/SBML%20Software%20Index.swf&blurover=false" /> <param name="allowFullScreen" value="true" /> <param name="scale" value="showall" /> <param name="allowScriptAccess" value="always" /> <param name="base" value="http://content.screencast.com/users/fbergman/folders/Jing/media/18879a12-f02a-428d-bdd8-05581b4ce6ec/" /> 
+				<img src="Content/softwareindex.png" alt="SBML Software Index"/>
+				</object>
+			</td>
+			<td style="border:none; text-align:justify; vertical-align:top; padding: 10px 0 0 10px">
+				<p>
+				The Software Index is currently only available for Windows 
+				or Mac, as it requires the <a href="http://silverlight.net">
+				Silverlight</a> 4 plugin.
+				</p>
+				<p>
+					Currently the Software Index does not work with 
+					<a href="http://www.mono-project.com/Moonlight">Moonlight
+					</a>. We will update this page as soon as it does.
+				</p>
+				<p>If you still want to continue <a href="javascript:enableControls()">
+					click here</a>.</p>
+			</td>
+			</tr>
+		</table>
+	</div>
+    <div id="silverlightControlHost">
+        <object data="data:application/x-silverlight-2," type="application/x-silverlight-2" width="100%" height="97%">
+                  <param name="source" value="ClientBin/SoftwareMatrix.xap"/>
+                  <param name="enableGPUAcceleration" value="true"/>
+                  <param name="enableNavigation" value="all"/>
+                  <param name="onError" value="onSilverlightError" />
+                  <param name="background" value="white" />
+                  <param name="minRuntimeVersion" value="4.0.50401.0" />
+                  <param name="autoUpgrade" value="true" />
+                  <a href="http://go.microsoft.com/fwlink/?LinkID=149156&v=4.0.50826.0" style="text-decoration:none">
+                          <img src="http://go.microsoft.com/fwlink/?LinkId=161376" alt="Get Microsoft Silverlight" style="border-style:none"/>
+                  </a>
+        </object>
+
+        <!-- the following is purposefully outside the <object> tag so that
+        when silverlight *is* available, this text is still displayed, but
+        simply pushed down below the pivot subwindow. -->
+
+	<p><center style="font-size: x-small">
+	(The matrix requires a free browser <a target="_blank"
+	href="http://www.microsoft.com/silverlight">plugin</a>.  
+	If you prefer, you can view a plain <a target="_top" href="http://sbml.org/SBML_Software_Guide/SBML_Software_Matrix">table
+	version</a> instead.)
+	</center>
+        <iframe id="_sl_historyFrame" style="visibility:hidden;height:0px;width:0px;border:0px"></iframe></div>
+    </form>
+</body>
+</html>
