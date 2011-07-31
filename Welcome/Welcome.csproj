@@ -75,6 +75,7 @@
     <Content Include="Content\images\LogoWhiteBackBlackLetters-75.png" />
     <Content Include="Content\images\Official-sbml-supported-70.jpg" />
     <Content Include="Content\images\SBW-Logo.png" />
+    <Content Include="Content\images\sed-ml-web-tools.png" />
     <Content Include="Content\images\SED-MLlogo.png" />
     <Content Include="Content\themes\base\images\ui-bg_flat_0_aaaaaa_40x100.png" />
     <Content Include="Content\themes\base\images\ui-bg_flat_75_ffffff_40x100.png" />
