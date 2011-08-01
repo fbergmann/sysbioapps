@@ -12,6 +12,12 @@ body {
     color: #696969;
 }
 
+   html, body {
+            height: 100%;
+            overflow: auto;
+    }
+
+
 a:link {
     color: #034af3;
     text-decoration: underline;
