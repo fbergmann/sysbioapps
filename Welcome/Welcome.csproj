@@ -86,6 +86,7 @@
     <Content Include="Content\images\SBW-Logo.png" />
     <Content Include="Content\images\sed-ml-web-tools.png" />
     <Content Include="Content\images\SED-MLlogo.png" />
+    <Content Include="Content\RenderComparison.png" />
     <Content Include="Content\themes\custom-theme\images\ui-bg_flat_0_aaaaaa_40x100.png" />
     <Content Include="Content\themes\custom-theme\images\ui-bg_flat_75_ffffff_40x100.png" />
     <Content Include="Content\themes\custom-theme\images\ui-bg_glass_55_fbf9ee_1x400.png" />
