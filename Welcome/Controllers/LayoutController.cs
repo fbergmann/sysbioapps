@@ -200,8 +200,8 @@ namespace Welcome.Controllers
         }
 
 
-        //private static string _LatexFileName = "pdflatex";
-        private static string _LatexFileName =@"c:\pdflatex.bat";
+        private static string _LatexFileName = "pdflatex";
+        //private static string _LatexFileName =@"c:\pdflatex.bat";
 
         /// <summary>
         /// Gets / Sets the filename of the pdf latex compiler.
@@ -218,7 +218,7 @@ namespace Welcome.Controllers
             }
         }
 
-        private static string _LatexArguments = " -interaction nonstopmode";
+        private static string _LatexArguments = " -disable-installer -interaction nonstopmode";
         /// <summary>
         /// Gets / Sets the default arguments used for the compilation mode. 
         /// By default the converter will invoke the LatexFileName with the 
