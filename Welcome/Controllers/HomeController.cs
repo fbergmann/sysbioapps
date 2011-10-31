@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
+using System.IO;
 using System.Web.Mvc;
 
 namespace Welcome.Controllers
@@ -28,6 +29,24 @@ namespace Welcome.Controllers
         public ActionResult Services()
         {
             return View();
+        }
+
+        public string Upload(HttpPostedFileBase fileData)
+        {
+            var fileName = this.Server.MapPath("~/Uploads/" + System.IO.Path.GetFileName(fileData.FileName));
+            fileData.SaveAs(fileName);
+            SBML = System.IO.File.ReadAllText(fileName);
+            
+            return "ok";
+        }
+
+        public string SBML
+        {
+            get { return (string)Session["sbml"]; }
+            set
+            {
+                Session["sbml"] = value;
+            }
         }
     }
 }

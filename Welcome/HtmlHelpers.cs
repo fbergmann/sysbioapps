@@ -15,7 +15,7 @@ namespace Welcome
                 url = htmlHelper.ViewContext.HttpContext.ApplicationInstance.Server.MapPath(url);
                 return MvcHtmlString.Create(File.ReadAllText(url));
             }
-            catch (Exception ex)
+            catch (Exception )
             {
                 return MvcHtmlString.Create(new WebClient().DownloadString(url));
             }

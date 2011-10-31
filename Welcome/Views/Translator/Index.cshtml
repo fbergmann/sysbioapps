@@ -1,0 +1,59 @@
+﻿@{
+    ViewBag.Title = "SBML Translators";
+    ViewBag.Url = "Translator";
+}
+
+@section jquerycommands {
+<script type="text/javascript">
+//<![CDATA[
+    $(document).ready(function() {
+        //$.mobile.ajaxLinksEnabled = false;
+        
+        
+        $('#tabs').tabs({cookie: {}});
+
+        
+        $( "#rawSBML" ).resizable({handles: "se"});
+        
+    });
+        
+    
+//]]>
+</script>
+}
+
+<h2>SBML Translators</h2>
+
+  <div id="tabs" >
+
+        <ul>
+            <li><a href="#tabs-1" rel="external">Upload File</a></li>
+            <li><a href="#tabs-2" rel="external">Submit URL</a></li>
+            <li><a href="#tabs-3" rel="external">Paste SBML</a></li>
+        </ul>
+        <div id="tabs-1">
+            
+            <div id="noFlash">
+                <table border="0" cellpadding="0" cellspacing="0" width="100%"> 
+                <tr> 
+                    <td width="50%">
+                        <input type="file" name="file_upload" id="file_upload" size="72" value="Browse" ></input>
+                    </td> 
+                    <td width="50%" align="right">
+                            <a style="width: 200px" class="button" href="javascript:validate(false, 'fromFile');">Validate now</a>      
+                    </td> 
+                </tr> 
+                <tr style="height: 3px"> <td colspan="2"></td></tr>
+                <tr> 
+                    <td colspan="1">
+                        <span class="example"> 
+                            e.g. C\:Program Files\SBML\MyModels\l2v1-branch.xml
+                        </span>             
+                    </td>
+                    <td width="50%" align="right">      
+                         <a style="width: 200px" class="button" href="javascript:schedule(false, 'fromFile');">Schedule for Validation</a>
+                    </td> 
+                </tr>
+            </table> 
+            </div>
+        </div> <!--  tabs-1 -->        <div id="tabs-2">        </div> <!--  tabs-1 -->        <div id="tabs-3">        </div> <!--  tabs-1 --></div>

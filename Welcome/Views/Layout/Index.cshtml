@@ -1,0 +1,464 @@
+﻿@{
+    ViewBag.Title = "SBML Layout Viewer";
+    ViewBag.Url = "SBML Layout Viewer";
+}
+<script language="javascript" type="text/javascript">
+
+    $(document).ready(function () {
+        $('.accordion').accordion({
+            collapsible: true,
+            active: false
+        });      
+    });
+
+    function doLayout() {
+
+        var sbgn = $('#chkOverWriteRendering').is(':checked');
+        var gravity = $('#gravity').val();
+        var stiffness = $('#edge').val();
+        var missing = $('#cmbMissingReactant').val();
+        var magnetism = $('#chkMagnetism').is(':checked') ;
+        var boundary = $('#chkBoundary').is(':checked');
+        var grid = $('#chkGrid').is(':checked');
+
+        updateImage("/Layout/DoLayout?gravity=" + gravity +
+            "&sbgn=" + sbgn +
+            "&stiffness=" + stiffness +
+            "&type=" + missing +
+            "&magnetism=" + magnetism +
+            "&boundary=" + boundary +
+            "&grid=" + grid + 
+            "&");
+    };
+
+    function loadModel() {
+        var sbgn = $('#chkOverWriteRendering').is(':checked');
+        updateImage("/Layout/UpdateImage?sbgn=" + sbgn + "&");
+    };
+
+    function loadFile(file) {
+        var sbgn = $('#chkOverWriteRendering').is(':checked');
+        updateImage("/Layout/UpdateImage?sbgn=" + sbgn + 
+            "&file=" + file + "&");
+    };
+
+
+    function updateImage(url) {
+        $('#layoutImage').load(url + new Date().getTime());
+    };
+
+ 
+</script>
+<style type="text/css">
+    #main
+    {
+        height: auto;
+        display: block;
+        /*min-width:1080px;*/
+    }
+    #layoutMain
+    {
+        float: left;
+        width: 60%;
+    }
+    .fileupload-content
+    {
+        float: right;
+        width: 400px;
+    }
+    
+    .accordion h3
+    {
+        clear:both;        
+        padding-left:30px;
+        vertical-align:middle;
+        text-align:left;
+        padding-top:15px;
+        font-size:15px;
+        font-weight:bold;
+        height:35px;
+    }
+    
+    #wrapper
+    {
+        text-align: left;
+        min-height: 1%;
+        min-width:1080px;
+    }
+    /* mac hide \*/
+    * html #wrapper
+    {
+        height: 1%;
+    }
+    /* end hide*/
+    #header, #footer
+    {
+        width: 100%;
+        clear: both;
+    }
+    #inner
+    {
+        margin-right: 420px;
+    }
+    
+    #middle
+    {
+        margin-left: 0px;
+    }
+    #content, #content2
+    {
+        position: relative;
+        width: 100%;
+        float: left; /* contain clearing*/
+    }
+    #content2
+    {
+        margin: 0 -1px;
+    }
+    /* moz needs this*/
+    
+    #content
+    {
+        position: relative;
+        float: left; /* contain clearing*/
+        width: 100%;
+    }
+    
+    #right
+    {
+        width: 420px;
+        margin-right: -419px; /*overlap for old mozilla*/
+        position: relative;
+        left: 1px; /* now line it up*/
+        float: right;
+    }
+    * html #left
+    {
+        margin-right: -3px;
+    }
+    /* 3 pixel jog*/
+    * html #right
+    {
+        margin-left: -3px;
+    }
+    /* 3 pixel jog*/
+    
+    
+    /* clear without structural mark-up */
+    .clearfix:after
+    {
+        content: ".";
+        display: block;
+        height: 0;
+        clear: both;
+        visibility: hidden;
+    }
+    .clearfix
+    {
+        display: inline-block;
+    }
+    
+    /* mac hide - force layout in ie \*/
+    * html .clearfix, * html #inner, * html #middle
+    {
+        height: 1%;
+    }
+    .clearfix
+    {
+        display: block;
+    }
+    /* End hide */
+</style>
+<h2>SBML Layout Viewer</h2>
+<div id="wrapper">
+    <div id="inner">
+        <div id="middle" class="clearfix">
+            <div id="content">
+            
+                <div id="fileupload">
+                <small>
+                    <form action="@Url.Action("JQueryUpload")" method="post" enctype="multipart/form-data">
+                    <div class="fileupload-buttonbar">
+                        <label class="fileinput-button">
+                            <span>Add files...</span>
+                            <input type="file" name="files[]" multiple>
+                        </label>
+                        <button type="submit" class="start">
+                            Start upload</button>
+                        <!--<button type="reset" class="cancel">
+                            Cancel upload</button> -->
+                        <button type="button" class="delete">
+                            Delete files</button>
+                    </div>
+                    </form>
+                    
+                    <div id="right">
+                        <div class="fileupload-content">
+                            <table class="files">
+                            </table>
+                            <div class="fileupload-progressbar">
+                            </div>
+                        </div>
+                    </div>
+                    </small>
+                    <div id="content2" style="font-size:smaller">
+                        
+                        <table style="background-color: #E6E6EC; padding: 10; border: 0;width:650px">
+                            <tr>
+                                <td>
+                                    <a href="@Url.Action("ImageWithScale", new {scale=1})">Original Size</a>
+                                    &nbsp;|&nbsp; <a href="@Url.Action("ImageWithScale", new {scale=2})">Scaled x2</a>&nbsp;|&nbsp;
+                                    <a href="@Url.Action("ImageWithDimensions", new {width=640,height=480})">640x480</a>
+                                    &nbsp;|&nbsp; <a  href="@Url.Action("ImageWithDimensions", new {width=1024,height=768})">
+                                        1024x768</a> &nbsp;|&nbsp; <a href="@Url.Action("SVG")">SVG Export (experimental)</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="border: 1; background-color: white; padding: 10;">
+                                    <div id="layoutImage" style="width:650px;height:330px">
+                                        <a style="border: none;" href="@Url.Action("ImageWithScale", new {scale=1})">
+                                            <img src="@Url.Action("ImageWithDimensions", new {width=650,height=300})" alt="Image" />
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    NEW: provided by <a href="http://sbml2tikz.org" title="sbml2tikz" target="_blank">sbml2tikz</a>:
+                                    <a href="@Url.Action("TikZ")">TikZ Export</a> &nbsp;|&nbsp;
+                                    <a href="@Url.Action("PDF")">PDF Export</a>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <form action="@Url.Action("JQueryUpload")" method="post" enctype="multipart/form-data">
+                        <table>
+                            <tr>
+                                <td colspan="3">
+                                    <input type="checkbox" name="chkOverWriteRendering" id="chkOverWriteRendering" title="If true, existing render information (such as JDesigner or CellDesigner or SBML Rendering Extension annotation) will be discarded and instead an SBGN style sheet based on SBO Terms will be applied."
+                                        class="custom" />
+                                    <label for="chkOverWriteRendering">
+                                        Overwrite Rendering with SBGN Stylesheet</label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="3">
+                                    <a class="button" id="cmdVisualize" href="javascript:loadModel()">Visualize</a>
+                                    <a class="button" id="cmdLayout"  href="javascript:doLayout()">Layout</a>
+                                </td>                                
+                            </tr>
+                        </table>
+                        </form>
+
+
+                        <div class="accordion">
+                            <h3>Auto Layout options</h3>
+                            <div>
+                                <p style="color:GrayText">Here you can change all layout options. After a change press layout again.</p>
+                                <table>
+                                    <tr>
+                                        <td>
+                                            <label for="slider" style="width: 100px;">
+                                                Gravity:</label>
+                                        </td>
+                                        <td>
+                                            <input type="range" name="gravity" id="gravity" value="15" min="5" max="75" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <label for="slider" style="width: 100px;">
+                                                Edge Length:</label>
+                                        </td>
+                                        <td>
+                                            <input type="range" name="edge" id="edge" value="30" min="10" max="70" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <label for="cmbMissingReactant" class="select">
+                                                Missing Reactant / Product:</label>
+                                        </td>
+                                        <td>
+                                            <select name="cmbMissingReactant" id="cmbMissingReactant" title="This value specifies what should be done in case there are reactions without reactant or product.">
+                                                <option value="many">Generate Many Empty Set</option>
+                                                <option value="one">Generate One Empty Set</option>
+                                                <option value="sourcesink">Generate Source / Sink</option>
+                                                <option value="nothing">Do Nothing</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                </table>
+                                <div data-role="fieldcontain">
+                                    <fieldset data-role="controlgroup">
+                                        <legend>Other options:</legend>
+                                        <input type="checkbox" name="chkMagnetism" id="chkMagnetism" class="custom" />
+                                        <label for="chkMagnetism">
+                                            Use Magnetism</label>
+                                        <input type="checkbox" name="chkBoundary" id="chkBoundary" class="custom" />
+                                        <label for="chkBoundary">
+                                            Use Boundary</label>
+                                        <input type="checkbox" name="chkGrid" id="chkGrid" class="custom" />
+                                        <label for="chkGrid">
+                                            Use Grid</label>
+                                    </fieldset>
+                                </div>
+                                <p>
+                                </p>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="footer">
+        <div class="accordion">
+            <h3>About the layout viewer</h3>
+            <div style="text-align:justify">
+                <p>
+                    This site takes an SBML File and renders it according to the SBML Layout Extension,
+                    or the JDesigner annotations.An experimental support for CellDesigner Model annotations
+                    (Annotation Version 2.5) has been added.
+                </p>
+                <p>
+                    <em>November 2007:</em> The Render Extension used has been updated, so it would
+                    support also the render extension as proposed by the <a href="http://projects.villa-bosch.de/bcb/sbml/">
+                        <span>Eml Team</span></a>. The advantage for visitors to this website is, that
+                    now the full rendering is available as SVG (Previously only the Layout (positions
+                    & dimensions) were available as SVG).
+                </p>
+                <p>
+                    Update: The Layout algorithm used on this site has now been published: Supporting
+                    the SBML layout extension Anastasia Deckard; Frank T. Bergmann; Herbert M. Sauro,
+                    Bioinformatics 2006; doi: 10.1093/bioinformatics/btl520 Read more here: <a href="http://bioinformatics.oxfordjournals.org/cgi/content/abstract/btl520?ijkey=G4UCgZceMlqTy3v&keytype=ref">
+                        Full Article</a>
+                </p>       
+                <p>
+                    <em>5/28/2010:</em> The Layout viewer web application has been updated to also export
+                    the layout information in <a href="http://sourceforge.net/projects/pgf/" title="tikz home">
+                        TikZ</a> format. For this the open source converter <a href="http://sbml2tikz.org"
+                            title="sbml2tikz homepage">sbml2tikz</a> is used as library.
+                </p>
+                <p>
+                    <em>10/30/2011:</em> Launch of the new layout application, featuring support for multiple files.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+<script id="template-upload" type="text/x-jquery-tmpl">
+    <tr class="template-upload{{if error}} ui-state-error{{/if}}">
+        <td class="preview"></td>
+        <td class="name">{{if name}}${name}{{else}}Untitled{{/if}}</td>
+        <td class="size">${sizef}</td>
+        {{if error}}
+            <td class="error" colspan="2">Error:
+                {{if error === 'maxFileSize'}}File is too big
+                {{else error === 'minFileSize'}}File is too small
+                {{else error === 'acceptFileTypes'}}Filetype not allowed
+                {{else error === 'maxNumberOfFiles'}}Max number of files exceeded
+                {{else}}${error}
+                {{/if}}
+            </td>
+        {{else}}
+            <td class="progress"><div></div></td>
+            <td class="start"><button>Start</button></td>
+        {{/if}}
+        <td class="cancel"><button>Cancel</button></td>
+    </tr>
+</script>
+<script id="template-download" type="text/x-jquery-tmpl">
+    <tr class="template-download{{if error}} ui-state-error{{/if}}">
+        {{if error}}
+            <td></td>
+            <td class="name">${name}</td>
+            <td class="size">${sizef}</td>
+            <td class="error" colspan="2">Error:
+                {{if error === 1}}File exceeds upload_max_filesize (php.ini directive)
+                {{else error === 2}}File exceeds MAX_FILE_SIZE (HTML form directive)
+                {{else error === 3}}File was only partially uploaded
+                {{else error === 4}}No File was uploaded
+                {{else error === 5}}Missing a temporary folder
+                {{else error === 6}}Failed to write file to disk
+                {{else error === 7}}File upload stopped by extension
+                {{else error === 'maxFileSize'}}File is too big
+                {{else error === 'minFileSize'}}File is too small
+                {{else error === 'acceptFileTypes'}}Filetype not allowed
+                {{else error === 'maxNumberOfFiles'}}Max number of files exceeded
+                {{else error === 'uploadedBytes'}}Uploaded bytes exceed file size
+                {{else error === 'emptyResult'}}Empty file upload result
+                {{else}}${error}
+                {{/if}}
+            </td>
+        {{else}}
+            <td class="preview">
+                {{if thumbnail_url}}
+                    <a href="javascript:void(0)" onClick="${url};return false;" target="_blank"><img src="${thumbnail_url}"></a>
+                {{/if}}
+            </td>
+            <td class="name">
+                <a href="javascript:void(0)" onClick="${url};return false;"{{if thumbnail_url}} target="_blank"{{/if}}>${name}</a>
+            </td>
+            <td class="size">${sizef}</td>
+            <td colspan="2"></td>
+        {{/if}}
+        <td class="delete">
+            <button data-type="${delete_type}" data-url="${delete_url}">Delete</button>
+        </td>
+    </tr>
+</script>
+<script language="javascript">
+
+    /*
+    * jQuery File Upload Plugin JS Example 5.0.2
+    * https://github.com/blueimp/jQuery-File-Upload
+    *
+    * Copyright 2010, Sebastian Tschan
+    * https://blueimp.net
+    *
+    * Licensed under the MIT license:
+    * http://creativecommons.org/licenses/MIT/
+    */
+
+    /*jslint nomen: true */
+    /*global $ */
+
+    $(function () {
+        'use strict';
+
+        // Initialize the jQuery File Upload widget:
+        $('#fileupload').fileupload({
+            acceptFileTypes: /(\.|\/)(sbml|xml|sbgn)$/i,
+            autoUpload: true,
+            stop: function () {
+                loadModel();
+                $(this).find('.fileupload-progressbar').fadeOut();
+            }
+        });
+
+        // Load existing files:
+        $.getJSON($('#fileupload form').prop('action'), function (files) {
+            var fu = $('#fileupload').data('fileupload');
+            fu._adjustMaxNumberOfFiles(-files.length);
+            fu._renderDownload(files)
+            .appendTo($('#fileupload .files'))
+            .fadeIn(function () {
+                // Fix for IE7 and lower:
+                $(this).show();
+                loadModel();
+            });
+        });
+
+        // Open download dialogs via iframes,
+        // to prevent aborting current uploads:
+        $('#fileupload .files a:not([target^=_blank])').live('click', function (e) {
+            e.preventDefault();
+            $('<iframe style="display:none;"></iframe>')
+            .prop('src', this.href)
+            .appendTo('body');
+        });
+
+    });
+</script>
