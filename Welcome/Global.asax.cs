@@ -7,6 +7,7 @@ using System.Web.Mvc;
 using System.Web.Routing;
 using System.Web.Security;
 using System.Web.SessionState;
+using SBMLExtension;
 using SBMLExtension.LayoutExtension;
 
 namespace Welcome
@@ -39,31 +40,34 @@ namespace Welcome
 
             RegisterGlobalFilters(GlobalFilters.Filters);
             RegisterRoutes(RouteTable.Routes);
+
+            Util.SVG_FileDirectory = @"C:\Program Files (x86)\KGI\SBW\Layout";
+
         }
 
         protected void Session_Start()
         {
-            var session = HttpContext.Current.Session;
-            Debug.WriteLine("Adding Session: " + session.SessionID);
-            session["sbml"] = "";
-            session["layout"] = new Layout();
+            //var session = HttpContext.Current.Session;
+            //Debug.WriteLine("Adding Session: " + session.SessionID);
+            //session["sbml"] = "";
+            //session["layout"] = new Layout();
 
-            var sessions = (Dictionary<string, HttpSessionState>)Application.Get("sessions");
-            if (sessions == null)
-                sessions = new Dictionary<string, HttpSessionState>();
-            sessions[session.SessionID] = session;
-            Application.Set("sessions", sessions);
+            //var sessions = (Dictionary<string, HttpSessionState>)Application.Get("sessions");
+            //if (sessions == null)
+            //    sessions = new Dictionary<string, HttpSessionState>();
+            //sessions[session.SessionID] = session;
+            //Application.Set("sessions", sessions);
         }
 
         protected void Session_End()
         {
-            var sessions = (Dictionary<string, HttpSessionState>)Application.Get("sessions");
-            if (sessions == null)
-                sessions = new Dictionary<string, HttpSessionState>();
-            string sessionId = HttpContext.Current.Session.SessionID;
-            Debug.WriteLine("Remove Session: " + sessionId);
-            sessions.Remove(sessionId);
-            Application.Set("sessions", sessions);
+            //var sessions = (Dictionary<string, HttpSessionState>)Application.Get("sessions");
+            //if (sessions == null)
+            //    sessions = new Dictionary<string, HttpSessionState>();
+            //string sessionId = HttpContext.Current.Session.SessionID;
+            //Debug.WriteLine("Remove Session: " + sessionId);
+            //sessions.Remove(sessionId);
+            //Application.Set("sessions", sessions);
         }
 
 

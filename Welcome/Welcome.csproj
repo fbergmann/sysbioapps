@@ -50,7 +50,8 @@
     <Reference Include="SBML2TikZ">
       <HintPath>..\3rdParty\SBML2TikZ.dll</HintPath>
     </Reference>
-    <Reference Include="SBMLExtension">
+    <Reference Include="SBMLExtension, Version=2.7.4320.33166, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\3rdParty\SBMLExtension.dll</HintPath>
     </Reference>
     <Reference Include="SBMLSupport">

@@ -184,12 +184,8 @@ namespace Welcome.Controllers
 
         public FileResult SVG()
         {
-            using (var stream =new MemoryStream())
-            {
-                var writer = new StreamWriter(stream);
-                writer.WriteLine(Util.ToSVG(CurrentLayout));
-                return new FileContentResult(stream.GetBuffer(), "image/svg+xml") { FileDownloadName = "layout.svg" };
-            }
+            string svgContent = Util.ToSVG(CurrentLayout);
+            return new FileContentResult(System.Text.Encoding.UTF8.GetBytes(svgContent) , "image/svg+xml") { FileDownloadName = "layout.svg" };
         }
 
         public FileResult TikZ()
