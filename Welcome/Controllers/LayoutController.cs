@@ -199,12 +199,161 @@ namespace Welcome.Controllers
             };
         }
 
+
+        //private static string _LatexFileName = "pdflatex";
+        private static string _LatexFileName =@"c:\pdflatex.bat";
+
+        /// <summary>
+        /// Gets / Sets the filename of the pdf latex compiler.
+        /// </summary>
+        public static string LatexFileName
+        {
+            get
+            {
+                return _LatexFileName;
+            }
+            set
+            {
+                _LatexFileName = value;
+            }
+        }
+
+        private static string _LatexArguments = " -interaction nonstopmode";
+        /// <summary>
+        /// Gets / Sets the default arguments used for the compilation mode. 
+        /// By default the converter will invoke the LatexFileName with the 
+        /// tex  file followed by  -interaction nonstopmode
+        /// </summary>
+        public static string LatexArguments
+        {
+            get
+            {
+                return _LatexArguments;
+            }
+            set
+            {
+                _LatexArguments = value;
+            }
+        }
+
+        public static string LastMessage { get; set; }
+
+        public static void compiletoPDF(out Boolean compiled, string texfilename)
+        {
+            compiled = true;
+            try
+            {
+                string oldDir = Directory.GetCurrentDirectory();
+                ProcessStartInfo pdfLaTeXinfo = new ProcessStartInfo();
+                pdfLaTeXinfo.CreateNoWindow = true;
+                pdfLaTeXinfo.UseShellExecute = false;
+                pdfLaTeXinfo.RedirectStandardOutput = true;
+                pdfLaTeXinfo.RedirectStandardError = true;
+                Directory.SetCurrentDirectory(Path.GetDirectoryName(texfilename));
+
+                pdfLaTeXinfo.Arguments = Path.GetFileName(texfilename) + " " + LatexArguments;
+                pdfLaTeXinfo.FileName = LatexFileName;
+
+                Process p = Process.Start(pdfLaTeXinfo);
+
+                LastMessage = p.StandardOutput.ReadToEnd();
+                LastMessage += p.StandardError.ReadToEnd();
+                p.WaitForExit();
+                p.Close();
+                Directory.SetCurrentDirectory(oldDir);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.Message);
+                System.Diagnostics.Debug.WriteLine(ex.StackTrace);
+                compiled = false;
+            }
+        }
+
+
+        private static byte[] CompileTikZToPDF(string TikZstrings)
+        {
+            //Create a temp directory to generate the pdf and tex files
+            string tempDir = (Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
+            Directory.CreateDirectory(tempDir);
+
+            string tempFileName = Path.GetRandomFileName();
+            string TeXfilename = Path.Combine(tempDir, Path.GetFileNameWithoutExtension(tempFileName) + ".tex");
+            string PDFfilename = Path.Combine(tempDir, Path.GetFileNameWithoutExtension(tempFileName) + ".pdf");
+            //string TeXfilename = tempDir + "\\" + Path.GetFileNameWithoutExtension(tempFileName) + ".tex";
+            //string PDFfilename = tempDir + "\\" + Path.GetFileNameWithoutExtension(tempFileName) + ".pdf";
+
+            // write TikZstrings into TeXfilename
+            using (StreamWriter writer = new StreamWriter(TeXfilename))
+            {
+                writer.WriteLine(TikZstrings);
+            }
+
+            //Now convert the TeX file to PDF
+            Boolean compiled;
+            compiletoPDF(out compiled, TeXfilename);
+
+            //if the compilation was successful, we convert the PDF to a byte buffer
+            if (compiled)
+            {
+                try
+                {
+                    byte[] PDFdata = System.IO.File.ReadAllBytes(PDFfilename);
+                    //delete the tempDir
+                    try
+                    {
+                        Directory.Delete(tempDir, true);
+                    }
+                    catch (Exception )
+                    {
+                        
+                    }
+                    return PDFdata;
+                    
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine(ex.Message);
+                    System.Diagnostics.Debug.WriteLine(ex.StackTrace);
+                    try
+                    {
+                        Directory.Delete(tempDir, true);
+                    }
+                    catch (Exception )
+                    {
+
+                    }
+                    return new byte[] { };
+                }
+            }
+            try
+            {
+                Directory.Delete(tempDir, true);
+            }
+            catch (Exception )
+            {
+
+            }
+            return new byte[] { }; //return an empty array
+        }
+
         public FileResult PDF()
         {
             var converter = new Converter { layout = CurrentLayout };
-
-            var pdf = converter.ToPDF();
-
+            Converter.LastCompileException = null;
+            var tex = converter.ToTex(CurrentLayout);
+            var pdf  = CompileTikZToPDF(tex);
+            if (pdf == null || pdf.Length == 0)
+            {
+                return new FileContentResult(System.Text.Encoding.UTF8.GetBytes(LastMessage), "text/plain");
+            }
+            //var pdf = converter.ToPDF();
+            if (Converter.LastCompileException != null)
+            {
+                var errorMessage = Converter.LastCompileException.Message;
+                errorMessage += Environment.NewLine + Environment.NewLine + Converter.LastCompileException.StackTrace;
+                return new FileContentResult(System.Text.Encoding.UTF8.GetBytes(errorMessage), "text/plain");
+            }
             return new FileContentResult(pdf, "application/pdf")
             {
                 FileDownloadName = "layout.pdf"
