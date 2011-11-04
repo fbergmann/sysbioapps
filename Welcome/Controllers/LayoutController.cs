@@ -190,7 +190,7 @@ namespace Welcome.Controllers
 
         public FileResult TikZ()
         {
-            var converter = new Converter {layout = CurrentLayout, specs = new RenderSpecs(CurrentLayout)};
+            var converter = new Converter {Layout = CurrentLayout, specs = new RenderSpecs(CurrentLayout)};
             var tex = converter.ToTex(CurrentLayout);
 
             return new FileContentResult(System.Text.Encoding.UTF8.GetBytes(tex), "application/x-tex")
@@ -339,15 +339,15 @@ namespace Welcome.Controllers
 
         public FileResult PDF()
         {
-            var converter = new Converter { layout = CurrentLayout };
+            var converter = new Converter { Layout = CurrentLayout };
             Converter.LastCompileException = null;
             var tex = converter.ToTex(CurrentLayout);
-            var pdf  = CompileTikZToPDF(tex);
-            if (pdf == null || pdf.Length == 0)
-            {
-                return new FileContentResult(System.Text.Encoding.UTF8.GetBytes(LastMessage), "text/plain");
-            }
-            //var pdf = converter.ToPDF();
+            //var pdf  = CompileTikZToPDF(tex);
+            //if (pdf == null || pdf.Length == 0)
+            //{
+            //    return new FileContentResult(System.Text.Encoding.UTF8.GetBytes(LastMessage), "text/plain");
+            //}
+            var pdf = converter.ToPDF();
             if (Converter.LastCompileException != null)
             {
                 var errorMessage = Converter.LastCompileException.Message;

@@ -42,38 +42,10 @@ namespace Welcome
             RegisterRoutes(RouteTable.Routes);
 
             Util.SVG_FileDirectory = @"C:\Program Files (x86)\KGI\SBW\Layout";
-            //SBML2TikZ.Converter.LatexFileName = @"c:\pdflatex.bat";//@"c:\Program Files (x86)\MiKTeX 2.8\miktex\bin\pdflatex.exe";
-            //Welcome.Controllers.LayoutController.LatexFileName = @"c:\Program Files (x86)\MiKTeX 2.8\miktex\bin\pdflatex.exe";
-            //Welcome.Controllers.LayoutController.LatexFileName = @"c:\pdflatex.bat";
+            SBML2TikZ.Converter.LatexFileName = @"c:\mik-portable\miktex\bin\pdflatex.exe";// @"c:\Program Files (x86)\MiKTeX 2.9\miktex\bin\pdflatex.exe";
+            SBML2TikZ.Converter.TempPath = @"c:\Temp";//@"c:\Program Files (x86)\MiKTeX 2.8\miktex\bin\pdflatex.exe";
 
         }
-
-        protected void Session_Start()
-        {
-            //var session = HttpContext.Current.Session;
-            //Debug.WriteLine("Adding Session: " + session.SessionID);
-            //session["sbml"] = "";
-            //session["layout"] = new Layout();
-
-            //var sessions = (Dictionary<string, HttpSessionState>)Application.Get("sessions");
-            //if (sessions == null)
-            //    sessions = new Dictionary<string, HttpSessionState>();
-            //sessions[session.SessionID] = session;
-            //Application.Set("sessions", sessions);
-        }
-
-        protected void Session_End()
-        {
-            //var sessions = (Dictionary<string, HttpSessionState>)Application.Get("sessions");
-            //if (sessions == null)
-            //    sessions = new Dictionary<string, HttpSessionState>();
-            //string sessionId = HttpContext.Current.Session.SessionID;
-            //Debug.WriteLine("Remove Session: " + sessionId);
-            //sessions.Remove(sessionId);
-            //Application.Set("sessions", sessions);
-        }
-
-
 
     }
 }
