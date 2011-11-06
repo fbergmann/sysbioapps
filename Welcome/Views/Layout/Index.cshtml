@@ -44,6 +44,7 @@
 
 
     function updateImage(url) {
+        $('#layoutImage').html('<div style="vertical-align:middle;text-align:center"><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p> <img style="vertical-align:middle" src="/Content/wait.gif"/><span style="">&nbsp;Loading...</span></div>');
         $('#layoutImage').load(url + new Date().getTime());
     };
 
@@ -51,7 +52,7 @@
 </script>
 <style type="text/css">
     #main
-    {
+    {        
         height: auto;
         display: block;
         /*min-width:1080px;*/
@@ -83,7 +84,7 @@
     {
         text-align: left;
         min-height: 1%;
-        min-width:1080px;
+        /*min-width:1080px;*/
     }
     /* mac hide \*/
     * html #wrapper
@@ -131,6 +132,7 @@
         position: relative;
         left: 1px; /* now line it up*/
         float: right;
+        z-index:1;
     }
     * html #left
     {
@@ -203,7 +205,7 @@
                     </small>
                     <div id="content2" style="font-size:smaller">
                         
-                        <table style="background-color: #E6E6EC; padding: 10; border: 0;width:650px">
+                        <table style="background-color: #E6E6EC; padding: 10; border: 0;width:650px;min-width:650px;z-index:1">
                             <tr>
                                 <td>
                                     <a href="@Url.Action("ImageWithScale", new {scale=1})">Original Size</a>

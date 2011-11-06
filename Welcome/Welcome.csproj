@@ -185,6 +185,7 @@
     <Content Include="Content\themes\custom-theme\images\ui-icons_888888_256x240.png" />
     <Content Include="Content\themes\custom-theme\images\ui-icons_cd0a0a_256x240.png" />
     <Content Include="Content\themes\custom-theme\jquery-ui-1.8.13.custom.css" />
+    <Content Include="Content\wait.gif" />
     <Content Include="pivot-software-matrix.html" />
     <Content Include="Content\softwareindex.png" />
     <Content Include="Global.asax" />
