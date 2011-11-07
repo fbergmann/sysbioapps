@@ -138,14 +138,21 @@ namespace Welcome.Controllers
         {
             string sbml;
 
-            string fileName = Server.MapPath("~/Uploads/" + file);
-            if (string.IsNullOrEmpty(file) || !System.IO.File.Exists(fileName))
+            if (string.IsNullOrEmpty(file) )
             {
                 sbml = SBML;
             }
             else
             {
-                sbml = System.IO.File.ReadAllText(fileName);
+                string fileName = Server.MapPath("~/Uploads/" + Path.GetFileName(file));
+                if (!System.IO.File.Exists(fileName))
+                {
+                    sbml = SBML;
+                }
+                else
+                {
+                    sbml = System.IO.File.ReadAllText(fileName);
+                }
             }
             return sbml;
         }

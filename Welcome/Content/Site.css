@@ -364,3 +364,10 @@ div#title {
 
 #notWindowsOrMac {		
 }
+
+.example
+{
+  font-size: 7pt;
+  color: gray;
+  line-height: 150%;
+}

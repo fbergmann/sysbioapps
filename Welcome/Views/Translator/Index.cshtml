@@ -1,59 +1,511 @@
-﻿@{
+﻿@using Welcome.Models
+@model CurrentTranslation
+@{
     ViewBag.Title = "SBML Translators";
     ViewBag.Url = "Translator";
 }
-
 @section jquerycommands {
-<script type="text/javascript">
-//<![CDATA[
-    $(document).ready(function() {
-        //$.mobile.ajaxLinksEnabled = false;
-        
-        
-        $('#tabs').tabs({cookie: {}});
-
-        
-        $( "#rawSBML" ).resizable({handles: "se"});
-        
-    });
-        
-    
-//]]>
-</script>
+    <script type="text/javascript" src="@Url.Content("~/Scripts/shCore.js")"></script>
+    <script type="text/javascript" src="@Url.Content("~/Scripts/shBrushPlain.js")"></script>
+    <script type="text/javascript" src="@Url.Content("~/Scripts/shBrushXml.js")"></script>
+    <script type="text/javascript" src="@Url.Content("~/Scripts/shBrushJava.js")"></script>
+    <script type="text/javascript" src="@Url.Content("~/Scripts/shBrushMatlabSimple.js")"></script>
+    <script type="text/javascript" src="@Url.Content("~/Scripts/shBrushCpp.js")"></script>
+    <script type="text/javascript" src="@Url.Content("~/Scripts/shBrushCSharp.js")"></script>
+    <script type="text/javascript" src="@Url.Content("~/Scripts/shBrushPlain.js")"></script>
+    <script type="text/javascript" src="@Url.Content("~/Scripts/shBrushXPP.js")"></script>
+    <script type="text/javascript" src="@Url.Content("~/Scripts/shBrushJan.js")"></script>
+    <script type="text/javascript" src="@Url.Content("~/Scripts/shBrushPython.js")"></script>
+    <script type="text/javascript">
+//<![CDATA[
+
+
+        (function ($) {
+            $.widget("ui.combobox", {
+                _create: function () {
+                    var self = this,
+					select = this.element.hide(),
+					selected = select.children(":selected"),
+					value = selected.val() ? selected.text() : "";
+                    var input = this.input = $("<input>")
+					.insertAfter(select)
+					.val(value)
+					.autocomplete({
+					    delay: 0,
+					    minLength: 0,
+					    source: function (request, response) {
+					        var matcher = new RegExp($.ui.autocomplete.escapeRegex(request.term), "i");
+					        response(select.children("option").map(function () {
+					            var text = $(this).text();
+					            if (this.value && (!request.term || matcher.test(text)))
+					                return {
+					                    label: text.replace(
+											new RegExp(
+												"(?![^&;]+;)(?!<[^<>]*)(" +
+												$.ui.autocomplete.escapeRegex(request.term) +
+												")(?![^<>]*>)(?![^&;]+;)", "gi"
+											), "<strong>$1</strong>"),
+					                    value: text,
+					                    option: this
+					                };
+					        }));
+					    },
+					    select: function (event, ui) {
+					        ui.item.option.selected = true;
+					        self._trigger("selected", event, {
+					            item: ui.item.option
+					        });
+					    },
+					    change: function (event, ui) {
+					        if (!ui.item) {
+					            var matcher = new RegExp("^" + $.ui.autocomplete.escapeRegex($(this).val()) + "$", "i"),
+									valid = false;
+					            select.children("option").each(function () {
+					                if ($(this).text().match(matcher)) {
+					                    this.selected = valid = true;
+					                    return false;
+					                }
+					            });
+					            if (!valid) {
+					                // remove invalid value, as it didn't match anything
+					                $(this).val("");
+					                select.val("");
+					                input.data("autocomplete").term = "";
+					                return false;
+					            }
+					        }
+					    }
+					})
+					.addClass("ui-widget ui-widget-content ui-corner-left");
+
+                    input.data("autocomplete")._renderItem = function (ul, item) {
+                        return $("<li></li>")
+						.data("item.autocomplete", item)
+						.append("<a>" + item.label + "</a>")
+						.appendTo(ul);
+                    };
+
+                    this.button = $("<button type='button'>&nbsp;</button>")
+					.attr("tabIndex", -1)
+					.attr("title", "Show All Items")
+					.insertAfter(input)
+					.button({
+					    icons: {
+					        primary: "ui-icon-triangle-1-s"
+					    },
+					    text: false
+					})
+					.removeClass("ui-corner-all")
+					.addClass("ui-corner-right ui-button-icon")
+					.click(function () {
+					    // close if already visible
+					    if (input.autocomplete("widget").is(":visible")) {
+					        input.autocomplete("close");
+					        return;
+					    }
+
+					    // work around a bug (likely same cause as #5265)
+					    $(this).blur();
+
+					    // pass empty string as value to search for, displaying all results
+					    input.autocomplete("search", "");
+					    input.focus();
+					});
+                },
+
+                destroy: function () {
+                    this.input.remove();
+                    this.button.remove();
+                    this.element.show();
+                    $.Widget.prototype.destroy.call(this);
+                }
+            });
+        })(jQuery);
+
+        $(document).ready(function () {
+
+
+            SyntaxHighlighter.all();
+
+            $('#tabs').tabs({ cookie: {} });
+            $("#rawSBML").resizable({ handles: "se" });
+            $("#divContent").resizable();
+            $("#combobox").combobox();
+            $("#exampleUrl").click(function () {
+                $('#url').val('http://www.ebi.ac.uk/biomodels-main/download?mid=BIOMD0000000001');
+            });
+
+        });
+
+
+        function loadModel() {
+            var translator = $('#combobox').val();
+            updateTranslation("/Translator/UpdateTranslation?translator=" + translator +"&");
+        };
+
+        function downloadFile() {
+            var translator = $('#combobox').val();
+            window.open("/Translator/DownloadTranslation?translator=" + translator + "&" + new Date().getTime());
+        };
+
+        function loadFile(file) {
+            var translator = $('#combobox').val();
+            updateTranslation("/Translator/UpdateTranslation?translator=" + translator +
+            "&file=" + file + "&");
+        };
+
+        function highlight() {
+            SyntaxHighlighter.highlight();
+        }
+
+        function updateTranslation(url) {
+            $('#divContent').html('<div style="vertical-align:middle;text-align:center"><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p> <img style="vertical-align:middle" src="/Content/wait.gif"/><span style="">&nbsp;Loading...</span></div>');
+            $('#divContent').load(url + new Date().getTime(), function () { SyntaxHighlighter.highlight(); });
+            /*setTimeout("highlight()", 3000);*/
+        };
+
+//]]>
+    </script>
 }
-
+<style type="text/css">
+    #main
+    {
+        height: auto;
+        display: block; /*min-width:1080px;*/
+    }
+    #layoutMain
+    {
+        float: left;
+        width: 60%;
+    }
+    .fileupload-content
+    {
+        width: 400px;
+    }
+    
+    .accordion h3
+    {
+        clear: both;
+        padding-left: 30px;
+        vertical-align: middle;
+        text-align: left;
+        padding-top: 15px;
+        font-size: 15px;
+        font-weight: bold;
+        height: 35px;
+    }
+    
+    #wrapper
+    {
+        text-align: left;
+        min-height: 1%; /*min-width:1080px;*/
+    }
+    /* mac hide \*/
+    * html #wrapper
+    {
+        height: 1%;
+    }
+    /* end hide*/
+    #header, #footer
+    {
+        width: 100%;
+        clear: both;
+    }
+    #inner
+    {
+        margin-right: 420px;
+    }
+    
+    #middle
+    {
+        margin-left: 0px;
+    }
+    #content, #content2
+    {
+        position: relative;
+        width: 100%;
+        float: left; /* contain clearing*/
+    }
+    #content2
+    {
+        margin: 0 -1px;
+    }
+    /* moz needs this*/
+    
+    #content
+    {
+        position: relative;
+        float: left; /* contain clearing*/
+        width: 100%;
+    }
+    
+    #right
+    {
+        width: 420px;
+        margin-right: -419px; /*overlap for old mozilla*/
+        position: relative;
+        left: 1px; /* now line it up*/
+        float: right;
+        z-index: 1;
+    }
+    * html #left
+    {
+        margin-right: -3px;
+    }
+    /* 3 pixel jog*/
+    * html #right
+    {
+        margin-left: -3px;
+    }
+    /* 3 pixel jog*/
+    
+    
+    /* clear without structural mark-up */
+    .clearfix:after
+    {
+        content: ".";
+        display: block;
+        height: 0;
+        clear: both;
+        visibility: hidden;
+    }
+    .clearfix
+    {
+        display: inline-block;
+    }
+    
+    /* mac hide - force layout in ie \*/
+    * html .clearfix, * html #inner, * html #middle
+    {
+        height: 1%;
+    }
+    .clearfix
+    {
+        display: block;
+    }
+    /* End hide */
+</style>
 <h2>SBML Translators</h2>
+<div id="tabs">
+    <ul>
+        <li><a href="#tabs-1" rel="external">Upload File(s)</a></li>
+        <li><a href="#tabs-2" rel="external">Submit URL</a></li>
+        <li><a href="#tabs-3" rel="external">Paste SBML</a></li>
+    </ul>
+    <div id="tabs-1">
+        <div id="fileupload">
+            <small>
+                <form action="@Url.Action("JQueryUpload")" method="post" enctype="multipart/form-data">
+                <div class="fileupload-buttonbar">
+                    <label class="fileinput-button">
+                        <span>Add files...</span>
+                        <input type="file" name="files[]" multiple>
+                    </label>
+                    <button type="submit" class="start">
+                        Start upload</button>
+                    <!--<button type="reset" class="cancel">
+                            Cancel upload</button> -->
+                    <button type="button" class="delete">
+                        Delete files</button>
+                </div>
+                </form>
+                <div>
+                    <div class="fileupload-content">
+                        <table class="files">
+                        </table>
+                        <div class="fileupload-progressbar">
+                        </div>
+                    </div>
+                </div>
+            </small>
+        </div>
+    </div>    
+    <div id="tabs-2">
+        @using(Html.BeginForm("UploadURL", "Translator"))
+        {
+        <table border="0" cellpadding="0" cellspacing="0" width="100%">
+            <tr>
+                <td width="50%">
+                    <input type="text" id="url" name="url" style="width: 100%" size="63"></input>
+                </td>
+                <td width="50%" align="right">
+                    <input type="submit"  class="button" value="Translate" />
+                </td>
+            </tr>
+            <tr style="height: 3px">
+                <td colspan="2">
+                </td>
+            </tr>
+            <tr>
+                <td colspan="1">
+                    <span class="example">Type the URL of an SBML file located on another computer. Example:<br />
+                        <b id="exampleUrl">
+                            http://www.ebi.ac.uk/biomodels-main/download?mid=BIOMD0000000001 </b></span>
+                </td>
+                <td width="50%" align="right">
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                </td>
+            </tr>
+        </table>
+        }
+    </div>
+    <!--  tabs-1 -->
+    <div id="tabs-3">
+        @using (Html.BeginForm("UploadSBML", "Translator"))
+        {
+            <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                <tr>
+                    <td width="80%">
+                        <p>
+                            <span class="example">Paste or type SBML content directly into the text window below.
+                            </span>
+                        </p>
+                        <textarea name="rawSBML" rows="20" cols="80" style="width: 100%" id="rawSBML"></textarea>
+                    </td>
+                    <td width="20%" align="right" style="vertical-align: top">
+                        <input type="submit" class="button" value="Translate" />
+                    </td>
+                </tr>
+            </table>
+        }
+    </div>
+    <!--  tabs-1 -->
+</div>
+<p>&nbsp;</p>
 
-  <div id="tabs" >
-
-        <ul>
-            <li><a href="#tabs-1" rel="external">Upload File</a></li>
-            <li><a href="#tabs-2" rel="external">Submit URL</a></li>
-            <li><a href="#tabs-3" rel="external">Paste SBML</a></li>
-        </ul>
-        <div id="tabs-1">
-            
-            <div id="noFlash">
-                <table border="0" cellpadding="0" cellspacing="0" width="100%"> 
-                <tr> 
-                    <td width="50%">
-                        <input type="file" name="file_upload" id="file_upload" size="72" value="Browse" ></input>
-                    </td> 
-                    <td width="50%" align="right">
-                            <a style="width: 200px" class="button" href="javascript:validate(false, 'fromFile');">Validate now</a>      
-                    </td> 
-                </tr> 
-                <tr style="height: 3px"> <td colspan="2"></td></tr>
-                <tr> 
-                    <td colspan="1">
-                        <span class="example"> 
-                            e.g. C\:Program Files\SBML\MyModels\l2v1-branch.xml
-                        </span>             
-                    </td>
-                    <td width="50%" align="right">      
-                         <a style="width: 200px" class="button" href="javascript:schedule(false, 'fromFile');">Schedule for Validation</a>
-                    </td> 
-                </tr>
-            </table> 
-            </div>
-        </div> <!--  tabs-1 -->        <div id="tabs-2">        </div> <!--  tabs-1 -->        <div id="tabs-3">        </div> <!--  tabs-1 --></div>
+    <div class="ui-widget">
+	<label>Target Language: </label>
+	<select id="combobox">
+    @foreach (var item in Model.Translators)
+    {
+        <option value="@item.Key"  @( item.Key == Model.CurrentTranslator ? "selected='selected'" :"" )  >@item.Name</option>
+    }
+	</select>
+    </div>
+
+
+
+<p>
+    <a href="javascript:void(0)" onclick="loadFile(); return false;" class="button">Translate</a>
+    <a href="javascript:void(0)" onclick="downloadFile(); return false;" class="down_button">Download Translation</a>
+</p>
+<div id="divContent">
+@Html.Raw(Model.Translation)
+</div>
+<script id="template-upload" type="text/x-jquery-tmpl">
+    <tr class="template-upload{{if error}} ui-state-error{{/if}}">
+        <td class="preview"></td>
+        <td class="name">{{if name}}${name}{{else}}Untitled{{/if}}</td>
+        <td class="size">${sizef}</td>
+        {{if error}}
+            <td class="error" colspan="2">Error:
+                {{if error === 'maxFileSize'}}File is too big
+                {{else error === 'minFileSize'}}File is too small
+                {{else error === 'acceptFileTypes'}}Filetype not allowed
+                {{else error === 'maxNumberOfFiles'}}Max number of files exceeded
+                {{else}}${error}
+                {{/if}}
+            </td>
+        {{else}}
+            <td class="progress"><div></div></td>
+            <td class="start"><button>Start</button></td>
+        {{/if}}
+        <td class="cancel"><button>Cancel</button></td>
+    </tr>
+</script>
+<script id="template-download" type="text/x-jquery-tmpl">
+    <tr class="template-download{{if error}} ui-state-error{{/if}}">
+        {{if error}}
+            <td></td>
+            <td class="name">${name}</td>
+            <td class="size">${sizef}</td>
+            <td class="error" colspan="2">Error:
+                {{if error === 1}}File exceeds upload_max_filesize (php.ini directive)
+                {{else error === 2}}File exceeds MAX_FILE_SIZE (HTML form directive)
+                {{else error === 3}}File was only partially uploaded
+                {{else error === 4}}No File was uploaded
+                {{else error === 5}}Missing a temporary folder
+                {{else error === 6}}Failed to write file to disk
+                {{else error === 7}}File upload stopped by extension
+                {{else error === 'maxFileSize'}}File is too big
+                {{else error === 'minFileSize'}}File is too small
+                {{else error === 'acceptFileTypes'}}Filetype not allowed
+                {{else error === 'maxNumberOfFiles'}}Max number of files exceeded
+                {{else error === 'uploadedBytes'}}Uploaded bytes exceed file size
+                {{else error === 'emptyResult'}}Empty file upload result
+                {{else}}${error}
+                {{/if}}
+            </td>
+        {{else}}
+            <td class="preview">
+                {{if thumbnail_url}}
+                    <a href="javascript:void(0)" onClick="${url};return false;" target="_blank"><img src="${thumbnail_url}"></a>
+                {{/if}}
+            </td>
+            <td class="name">
+                <a href="javascript:void(0)" onClick="${url};return false;"{{if thumbnail_url}} target="_blank"{{/if}}>${name}</a>
+            </td>
+            <td class="size">${sizef}</td>
+            <td colspan="2"></td>
+        {{/if}}
+        <td class="delete">
+            <button data-type="${delete_type}" data-url="${delete_url}">Delete</button>
+        </td>
+    </tr>
+</script>
+<script language="javascript">
+
+    /*
+    * jQuery File Upload Plugin JS Example 5.0.2
+    * https://github.com/blueimp/jQuery-File-Upload
+    *
+    * Copyright 2010, Sebastian Tschan
+    * https://blueimp.net
+    *
+    * Licensed under the MIT license:
+    * http://creativecommons.org/licenses/MIT/
+    */
+
+    /*jslint nomen: true */
+    /*global $ */
+
+    $(function () {
+        'use strict';
+
+        // Initialize the jQuery File Upload widget:
+        $('#fileupload').fileupload({
+            acceptFileTypes: /(\.|\/)(sbml|xml|sbgn)$/i,
+            autoUpload: true,
+            stop: function () {
+                loadModel();
+                $(this).find('.fileupload-progressbar').fadeOut();
+            }
+        });
+
+        // Load existing files:
+        $.getJSON($('#fileupload form').prop('action'), function (files) {
+            var fu = $('#fileupload').data('fileupload');
+            fu._adjustMaxNumberOfFiles(-files.length);
+            fu._renderDownload(files)
+            .appendTo($('#fileupload .files'))
+            .fadeIn(function () {
+                // Fix for IE7 and lower:
+                $(this).show();
+                loadModel();
+            });
+        });
+
+        // Open download dialogs via iframes,
+        // to prevent aborting current uploads:
+        $('#fileupload .files a:not([target^=_blank])').live('click', function (e) {
+            e.preventDefault();
+            $('<iframe style="display:none;"></iframe>')
+            .prop('src', this.href)
+            .appendTo('body');
+        });
+
+    });
+</script>
