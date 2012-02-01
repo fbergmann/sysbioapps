@@ -246,7 +246,8 @@
                             <tr>
                                 <td colspan="3">
                                     <a class="button" id="cmdVisualize" href="javascript:loadModel()">Visualize</a>
-                                    <a class="button" id="cmdLayout"  href="javascript:doLayout()">Layout</a>
+                                    <a class="button" id="cmdLayout"  href="javascript:doLayout()">Layout</a> &nbsp; | &nbsp;
+                                    @Html.ActionLink("Download SBML", "GetSBML", "Layout", new { @class = "button" }) 
                                 </td>                                
                             </tr>
                         </table>

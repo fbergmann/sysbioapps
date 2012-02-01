@@ -14,15 +14,18 @@ namespace Welcome.Controllers
 
     public class TranslatorController : Controller
     {
-
+        public static string TempDir = @"c:\Temp";
         public static string ExecuteProgram(string program, 
             string sbml, 
             string preArgs = " -f ",
             string postArgs = "")
         {
+            if (string.IsNullOrWhiteSpace(sbml))
+                return "No Model loaded ... ";
+
             try
             {
-                string fileName = Path.GetTempFileName();
+                string fileName = Path.Combine(TempDir, Path.GetRandomFileName());
                 System.IO.File.WriteAllText(fileName, sbml);
                 var info = new ProcessStartInfo { 
                     RedirectStandardOutput = true, 
@@ -48,9 +51,16 @@ namespace Welcome.Controllers
             }
         }
 
-        static string TranslatorDir = @"C:\Development\sbwBuild\source\Translators\build\";
-        //@"C:\Development\sbwBuild\source\Translators\bin\";
-        //@"C:\Program Files (x86)\KGI\SBW\bin\";
+        private static System.Security.SecureString CreatePassword(string p)
+        {
+            var result = new System.Security.SecureString();
+            var buffer = p.ToCharArray();
+            for (int i = 0; i < p.Length; i++)
+                result.AppendChar(buffer[i]);
+            return result;
+        }
+
+        static string TranslatorDir =  @"C:\Program Files (x86)\KGI\SBW\bin\";
 
         static Translator[] Translators = new Translator[] { 
             new Translator { 
@@ -72,7 +82,7 @@ namespace Welcome.Controllers
                 Name="JarnacLite Translator", 
                 Extension=".jan", 
                 MimeType="application/jarnac", 
-                Translate = (sbml) => ExecuteProgram(@"C:\Development\sbwBuild\source\JarnacLite\bin\Debug\JarnacLiteConsole.exe", sbml, "", "")                
+                Translate = (sbml) => ExecuteProgram(@"C:\Program Files (x86)\KGI\SBW\JarnacLite\JarnacLiteConsole.exe", sbml, "", "")                
             },
             new Translator { 
                 Key="java", 

@@ -42,8 +42,8 @@ namespace Welcome
             RegisterRoutes(RouteTable.Routes);
 
             Util.SVG_FileDirectory = @"C:\Program Files (x86)\KGI\SBW\Layout";
-            SBML2TikZ.Converter.LatexFileName = @"c:\mik-portable\miktex\bin\pdflatex.exe";// @"c:\Program Files (x86)\MiKTeX 2.9\miktex\bin\pdflatex.exe";
-            SBML2TikZ.Converter.TempPath = @"c:\Temp";//@"c:\Program Files (x86)\MiKTeX 2.8\miktex\bin\pdflatex.exe";
+            SBML2TikZ.Converter.LatexFileName = @"c:\mik-portable\miktex\bin\pdflatex.exe";
+            SBML2TikZ.Converter.TempPath = @"c:\Temp";
 
         }
 

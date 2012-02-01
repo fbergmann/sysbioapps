@@ -195,6 +195,14 @@ namespace Welcome.Controllers
             return new FileContentResult(System.Text.Encoding.UTF8.GetBytes(svgContent) , "image/svg+xml") { FileDownloadName = "layout.svg" };
         }
 
+        public FileResult GetSBML()
+        {
+            string svgContent = Util.writeLayout(CurrentLayout);
+            if (string.IsNullOrWhiteSpace(svgContent))
+                svgContent = "";
+            return new FileContentResult(System.Text.Encoding.UTF8.GetBytes(svgContent), "application/sbml+xml") { FileDownloadName = "layout.xml" };
+        }
+
         public FileResult TikZ()
         {
             var converter = new Converter {Layout = CurrentLayout, specs = new RenderSpecs(CurrentLayout)};
