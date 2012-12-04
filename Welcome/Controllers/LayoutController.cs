@@ -145,11 +145,7 @@ namespace Welcome.Controllers
 
         public ActionResult Index(string selected = null)
         {
-            var result = new List<string>();
-            foreach (Layout layout in AllLayouts )
-            {
-            	result.Add(layout.ID);
-            }
+            var result = AllLayouts.Select(layout => layout.ID).ToList();
             if (selected == null && result.Count > 0)
                 selected = result[0];
 
