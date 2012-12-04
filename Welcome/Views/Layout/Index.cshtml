@@ -205,21 +205,31 @@
                     </small>
                     <div id="content2" style="font-size:smaller">
                         
-                        <table style="background-color: #E6E6EC; padding: 10; border: 0;width:650px;min-width:650px;z-index:1">
+                      @if (ViewBag.NumLayouts > 1)
+                      {
+                        using (Html.BeginForm())
+                        {
+                          SelectList items = ViewBag.selected;
+                          @Html.DropDownList("selected", items);  <input type="submit" value="Change Layout" />
+
+                        }
+                      }
+
+                      <table style="background-color: #E6E6EC; padding: 10; border: 0;width:650px;min-width:650px;z-index:1">
                             <tr>
                                 <td>
-                                    <a href="@Url.Action("ImageWithScale", new {scale=1})">Original Size</a>
-                                    &nbsp;|&nbsp; <a href="@Url.Action("ImageWithScale", new {scale=2})">Scaled x2</a>&nbsp;|&nbsp;
-                                    <a href="@Url.Action("ImageWithDimensions", new {width=640,height=480})">640x480</a>
-                                    &nbsp;|&nbsp; <a  href="@Url.Action("ImageWithDimensions", new {width=1024,height=768})">
+                                    <a href="@Url.Action("ImageWithScale", new { scale = 1 })">Original Size</a>
+                                    &nbsp;|&nbsp; <a href="@Url.Action("ImageWithScale", new { scale = 2 })">Scaled x2</a>&nbsp;|&nbsp;
+                                    <a href="@Url.Action("ImageWithDimensions", new { width = 640, height = 480 })">640x480</a>
+                                    &nbsp;|&nbsp; <a  href="@Url.Action("ImageWithDimensions", new { width = 1024, height = 768 })">
                                         1024x768</a> &nbsp;|&nbsp; <a href="@Url.Action("SVG")">SVG Export (experimental)</a>
                                 </td>
                             </tr>
                             <tr>
                                 <td style="border: 1; background-color: white; padding: 10;">
                                     <div id="layoutImage" style="width:650px;height:330px">
-                                        <a style="border: none;" href="@Url.Action("ImageWithScale", new {scale=1})">
-                                            <img src="@Url.Action("ImageWithDimensions", new {width=650,height=300})" alt="Image" />
+                                        <a style="border: none;" href="@Url.Action("ImageWithScale", new { scale = 1 })">
+                                            <img src="@Url.Action("ImageWithDimensions", new { width = 650, height = 300 })" alt="Image" />
                                         </a>
                                     </div>
                                 </td>

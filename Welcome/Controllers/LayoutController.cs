@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -26,6 +27,39 @@ namespace Welcome.Controllers
             public int length { get; set; }
             public string type { get; set; }
             public string url { get; set; }
+        }
+
+        public Collection<Layout> AllLayouts 
+        {
+            get
+            {
+                if (Session["layouts"] == null)
+                {
+                    Session["layouts"] = new Collection<Layout>();
+                }
+                return (Collection<Layout>)Session["layouts"];
+            }
+            set
+            {
+                Session["layouts"] = value;
+            }
+        }
+
+
+        public string SelectedLayoutId
+        {
+            get
+            {
+                if (Session["selected"] == null)
+                {
+                    Session["selected"] = "";
+                }
+                return (string)Session["selected"];
+            }
+            set
+            {
+                Session["selected"] = value;
+            }
         }
 
         public Layout CurrentLayout 
@@ -58,36 +92,39 @@ namespace Welcome.Controllers
 
         public JsonResult JQueryUpload()
         {
-            var r = new List<ViewDataUploadFilesResult>();            
-             try
-             {
-                 for (int i = 0; i < Request.Files.Count; i++)
-                 {
-                     var hpf = Request.Files[i];
-                     if (hpf == null || hpf.ContentLength == 0) continue;
-                     string FileName = hpf.FileName;
-                     var savedFileName = this.Server.MapPath("~/Uploads/" + Path.GetFileName(FileName));
-                     hpf.SaveAs(savedFileName);
+            var r = new List<ViewDataUploadFilesResult>();
+            try
+            {
+                for (int i = 0; i < Request.Files.Count; i++)
+                {
+                    var hpf = Request.Files[i];
+                    if (hpf == null || hpf.ContentLength == 0) continue;
+                    string fileName = hpf.FileName;
+                    var savedFileName = this.Server.MapPath("~/Uploads/" + Path.GetFileName(fileName));
+                    hpf.SaveAs(savedFileName);
 
-                     if (Path.GetExtension(savedFileName).ToLowerInvariant().EndsWith("xml"))
-                         SBML = System.IO.File.ReadAllText(savedFileName);
+                    string lowerCasefileName = Path.GetExtension(savedFileName).ToLowerInvariant();
+                    if (lowerCasefileName.EndsWith("xml") || lowerCasefileName.EndsWith("sbml") || lowerCasefileName.EndsWith("sbgn"))
+                    {
+                        SBML = System.IO.File.ReadAllText(savedFileName);                        
+                    }
 
-                     r.Add(new ViewDataUploadFilesResult
-                               {
-                                   thumbnail_url = "/Layout/PreviewImage?file=" + Path.GetFileName(FileName),
-                                   url = "javascript:loadFile('" + Path.GetFileName(FileName) + "')",
-                                   name = FileName,
-                                   length = hpf.ContentLength,
-                                   type = hpf.ContentType
-                               });
-                 }
-             }
-             catch (Exception ex)
-             {
-                 Debug.WriteLine(ex.Message);
-             }
-             Response.ContentType = "text/plain";
-             return Json(r.ToArray(),"text/html", JsonRequestBehavior.AllowGet);
+                    r.Add(new ViewDataUploadFilesResult
+                              {
+                                  thumbnail_url = String.Format("/Layout/PreviewImage?file={0}", Path.GetFileName(fileName)),
+                                  url = String.Format("javascript:loadFile('{0}')", Path.GetFileName(fileName)),
+                                  name = fileName,
+                                  length = hpf.ContentLength,
+                                  type = hpf.ContentType
+                              });
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+            }
+            Response.ContentType = "text/plain";
+            return Json(r.ToArray(), "text/html", JsonRequestBehavior.AllowGet);
 
         }
 
@@ -106,9 +143,38 @@ namespace Welcome.Controllers
         //
         // GET: /Layout/
 
-        public ActionResult Index()
+        public ActionResult Index(string selected = null)
         {
+            var result = new List<string>();
+            foreach (Layout layout in AllLayouts )
+            {
+            	result.Add(layout.ID);
+            }
+            if (selected == null && result.Count > 0)
+                selected = result[0];
+
+            SelectedLayoutId = selected;
+            ViewBag.selected = new SelectList(result, selected);
+            ViewBag.NumLayouts = result.Count;
             return View();
+        }
+
+        public Layout SelectedLayout
+        {
+            get
+            {
+                var selected = SelectedLayoutId;
+                var all = AllLayouts;
+                foreach (var item in all)
+                {
+                    if (item.ID == selected)
+                        return item;
+                }
+                if (all.Count > 0)
+                return all[0];
+                return new Layout();
+                
+            }
         }
 
         private static string GenerateLayout(string sbml, double gravity = 15, double stiffness = 30, bool magnetism = false, bool boundary = false, bool grid = false, string type = "many")
@@ -131,6 +197,8 @@ namespace Welcome.Controllers
         {
             string sbml = Util.writeLayout(CurrentLayout);
             CurrentLayout = Util.readLayout(GenerateLayout(sbml, gravity, stiffness, magnetism, boundary, grid, type), sbgn);
+            AllLayouts = Util.Layouts;
+            SelectedLayoutId = CurrentLayout.ID;
             return Content(String.Format("<a target='_blank' style='border: none;' href='/Layout/ImageWithScale?scale=1&{0}'><img src='/Layout/ImageWithDimensions?height=300&width=500&{0}' alt='Image' /></a>", DateTime.Now.Ticks));
         }
 
@@ -162,9 +230,14 @@ namespace Welcome.Controllers
                 
             string sbml = GetCurrentSBML(file);
             CurrentLayout = Util.readLayout(sbml, sbgn);
+            AllLayouts = Util.Layouts;
 
             if (!CurrentLayout.hasLayout())
+            {
                 CurrentLayout = Util.readLayout(GenerateLayout(sbml), sbgn);
+                AllLayouts = Util.Layouts;
+                SelectedLayoutId = CurrentLayout.ID;
+            }
 
             return Content(String.Format("<a target='_blank' style='border: none;' href='/Layout/ImageWithScale?scale=1&{0}'><img src='/Layout/ImageWithDimensions?height=300&width=500&{0}' alt='Image' /></a>", DateTime.Now.Ticks));
         }
@@ -181,23 +254,23 @@ namespace Welcome.Controllers
 
         public FileResult ImageWithScale(float scale = 1)
         {
-            return ToFileResult(CurrentLayout.ToImage(scale));
+            return ToFileResult(SelectedLayout.ToImage(scale));
         }
 
         public FileResult ImageWithDimensions(double width, double height)
-        {            
-            return ToFileResult(CurrentLayout.ToImage(width, height));
+        {
+            return ToFileResult(SelectedLayout.ToImage(width, height));
         }
 
         public FileResult SVG()
         {
-            string svgContent = Util.ToSVG(CurrentLayout);
+            string svgContent = Util.ToSVG(SelectedLayout);
             return new FileContentResult(System.Text.Encoding.UTF8.GetBytes(svgContent) , "image/svg+xml") { FileDownloadName = "layout.svg" };
         }
 
         public FileResult GetSBML()
         {
-            string svgContent = Util.writeLayout(CurrentLayout);
+            string svgContent = Util.writeLayout(SelectedLayout);
             if (string.IsNullOrWhiteSpace(svgContent))
                 svgContent = "";
             return new FileContentResult(System.Text.Encoding.UTF8.GetBytes(svgContent), "application/sbml+xml") { FileDownloadName = "layout.xml" };
@@ -206,7 +279,7 @@ namespace Welcome.Controllers
         public FileResult TikZ()
         {
             var converter = new Converter {Layout = CurrentLayout, specs = new RenderSpecs(CurrentLayout)};
-            var tex = converter.ToTex(CurrentLayout);
+            var tex = converter.ToTex(SelectedLayout);
 
             return new FileContentResult(System.Text.Encoding.UTF8.GetBytes(tex), "application/x-tex")
             {
