@@ -35,10 +35,42 @@
         <p>To make it easy to visualize SBGN or SBML Models with the Layout / Render Packages, 
           the following uris accept the posting of an SBML model.
         </p>
-        <p>
-        <a href="@Url.Action("GenerateImage", "Layout")">@Url.Action("GenerateImage", "Layout")</a> <br/>
-        <a href="@Url.Action("GetLayoutSBML", "Layout")">@Url.Action("GetLayoutSBML", "Layout")</a> 
-        </p>        
+      <div>
+        <h2>GenerateImage</h2>
+<p>This action generates a PNG for a posted SBML / SBGN file. Should the file contain no SBML Layout, one will be generated. So how does this work. The URL to use is: </p>
+<pre><code>http://sysbioapps.dyndns.org/Layout/GenerateImage
+</code></pre>
+
+<p>You simply post to this URL the following HTTP Form elements:</p>
+<pre><code>file         - the SBML file
+scale        - an optional floating point scale for the image (defaults to 2)
+height       - scale image to fit the height
+width        - scale image to fit width 
+</code></pre>
+
+<p>If <code>height</code> is given, <code>width</code> needs to be given as well. </p>
+<h2>GetLayoutSBML</h2>
+<p>This action simply loads the given SBML file, and writes it out using the <a href="http://sbmllayout.sf.net">SBML Layout library</a>. Should no layout, exist, one will be generated. The URL is: </p>
+<pre><code>http://sysbioapps.dyndns.org/Layout/GetLayoutSBML
+</code></pre>
+
+<p>You simply post to this URL the following HTTP Form elements:</p>
+<pre><code>file         - the SBML file
+</code></pre>
+
+<h2>Example</h2>
+<p>So for example, if you wanted to post a local file to the service with <a href="http://curl.haxx.se/">curl</a>, you'd run:</p>
+<pre><code>curl -X POST -F file=@@&quot;.\BorisEJB.xml&quot; http://sysbioapps.dyndns.org/Layout/GenerateImage -o out.png
+</code></pre>
+
+<p>lets take the arguments apart: </p>
+<ul>
+<li><code>-X POST</code> post FORM data</li>
+<li><code>-F file=@@filename</code> post <code>filename</code> to the URL</li>
+<li><code>http://sysbioapps.dyndns.org/Layout/GenerateImage</code> the URL</li>
+<li><code>-o out.png</code> write the resulting PNG to the current directory as <code>out.png</code>. </li>
+</ul>
+      </div>
     </td>
 </tr>
 </table>
