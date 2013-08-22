@@ -1,9 +1,9 @@
 # sysbioapps.dyndns.org
 Root page for [SBW](http://sbw.sf.net) online services. Contains basically, the code for the [SBML Translator](http://sysbioapps.dyndns.org/Translator) and [SBML Layout](http://sysbioapps.dyndns.org/Layout), webapps.
 
-![SBML Translator](Welcome\Content\TranslatorApp-250.png)
+![SBML Translator](https://raw.github.com/fbergmann/sysbioapps/master/Welcome/Content/TranslatorApp-250.png)
 
-![SBML Layout](Welcome\Content\LayoutApp-250.png)  
+![SBML Layout](https://raw.github.com/fbergmann/sysbioapps/master/Welcome/Content/LayoutApp-250.png)  
 
 ##REST Service
 Added [Layout REST](./LayoutServices.md) service. 
