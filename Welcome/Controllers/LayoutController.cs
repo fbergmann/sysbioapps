@@ -322,6 +322,79 @@ namespace Welcome.Controllers
 
         public static string LastMessage { get; set; }
 
+        public ActionResult GetLayoutSBML(HttpPostedFileBase file)
+        {
+          if (file == null)
+            return new HttpNotFoundResult();
+          try
+          {
+            string sbml = "";
+            using (var reader = new StreamReader(file.InputStream))
+            {
+              sbml = reader.ReadToEnd();
+            }
+
+            var layout = Util.readLayout(sbml);
+            if (!layout.hasLayout())
+            {
+              sbml = GenerateLayout(sbml);                        
+            }
+
+            sbml = Util.writeLayout(layout);
+
+            return new FileContentResult(System.Text.Encoding.UTF8.GetBytes(sbml), "application/sbml+xml")
+            {
+              FileDownloadName = "layout.xml"
+            };
+          }
+          catch
+          {
+            return new HttpNotFoundResult();
+          }
+        }
+
+        public ActionResult GenerateImage(HttpPostedFileBase file, float? scale = null, double? width = null, double? height = null)        
+        {
+          if (file == null)
+            return new HttpNotFoundResult();
+          try
+          {
+            string sbml = "";
+            using (var reader = new StreamReader(file.InputStream))
+            {
+              sbml = reader.ReadToEnd();
+            }
+
+            var layout = Util.readLayout(sbml);
+            if (!layout.hasLayout())
+            {
+              sbml = GenerateLayout(sbml);
+            }
+
+            layout = Util.readLayout(sbml);
+            Image image = null;
+            if (scale.HasValue)
+              image = layout.ToImage(scale.Value);
+            else if (width.HasValue && height.HasValue)
+              image = layout.ToImage(width.Value, height.Value);
+            else
+              image = layout.ToImage(2f);
+
+            var stream = new MemoryStream();
+            image.Save(stream, ImageFormat.Png);
+
+            return new FileContentResult(stream.ToArray(), "image/png")
+            {
+              FileDownloadName = "image.png"
+            };
+          }
+          catch
+          {
+            return new HttpNotFoundResult();
+          }
+          
+        }
+
         public static void compiletoPDF(out Boolean compiled, string texfilename)
         {
             compiled = true;

@@ -1,7 +1,9 @@
 /*.suo
 /*.user
 /Welcome/obj
+/Backup
 /_ReSharper.Welcome
 packages
+*Upgrade*
 /Welcome/Uploads
 /Welcome/bin
