@@ -175,19 +175,26 @@ namespace Welcome.Controllers
 
         private static string GenerateLayout(string sbml, double gravity = 15, double stiffness = 30, bool magnetism = false, bool boundary = false, bool grid = false, string type = "many")
         {
+          try
+          {
             var network = new AutoLayout.DrawNetwork();
             network.loadSBML(sbml);
             sbml = network.generateLayout(
-                    gravity,
-                    stiffness,
-                    magnetism,
-                    boundary,
-                    grid,
-                    type == "sourcesink",
-                    type == "one",
-                    type == "many"
-                    );
-            return sbml;
+              gravity,
+              stiffness,
+              magnetism,
+              boundary,
+              grid,
+              type == "sourcesink",
+              type == "one",
+              type == "many"
+              );
+          }
+          catch
+          {
+            Debug.WriteLine("AutoLayout failed ... ");
+          }
+          return sbml;
         }
         public ContentResult DoLayout(bool sbgn = false, double gravity = 15, double stiffness = 30, bool magnetism = false, bool boundary = false, bool grid = false, string type = "many")
         {
