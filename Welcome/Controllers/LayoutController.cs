@@ -230,19 +230,33 @@ namespace Welcome.Controllers
 
         public ContentResult UpdateImage(string file = "", bool sbgn = false)
         {
-                
+          try
+          {
             string sbml = GetCurrentSBML(file);
             CurrentLayout = Util.readLayout(sbml, sbgn);
             AllLayouts = Util.Layouts;
 
             if (!CurrentLayout.hasLayout())
             {
-                CurrentLayout = Util.readLayout(GenerateLayout(sbml), sbgn);
-                AllLayouts = Util.Layouts;
-                SelectedLayoutId = CurrentLayout.ID;
+              CurrentLayout = Util.readLayout(GenerateLayout(sbml), sbgn);
+              AllLayouts = Util.Layouts;
+              SelectedLayoutId = CurrentLayout.ID;
             }
 
-            return Content(String.Format("<a target='_blank' style='border: none;' href='/Layout/ImageWithScale?scale=1&{0}'><img src='/Layout/ImageWithDimensions?height=300&width=500&{0}' alt='Image' /></a>", DateTime.Now.Ticks));
+            return
+              Content(
+                String.Format(
+                  "<a target='_blank' style='border: none;' href='/Layout/ImageWithScale?scale=1&{0}'><img src='/Layout/ImageWithDimensions?height=300&width=500&{0}' alt='Image' /></a>",
+                  DateTime.Now.Ticks));
+          }
+          catch (Exception ex)
+          {
+            return
+              Content(
+                String.Format(
+                  "<h2>Error</h2><p>{0}</p><pre>{1}</pre><p>If this problem persists, please notify the author.</p>",
+                  ex.Message, ex.StackTrace));
+          }
         }
 
         private static FileResult ToFileResult(Image image, string fileName = "layout.png")
