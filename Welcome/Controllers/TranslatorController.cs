@@ -60,7 +60,7 @@ namespace Welcome.Controllers
             return result;
         }
 
-        static string TranslatorDir =  @"C:\Program Files (x86)\KGI\SBW\bin\";
+        static string TranslatorDir =  @"E:\Program Files (x86)\KGI\SBW\bin\";
 
         static Translator[] Translators = new Translator[] { 
             new Translator { 
@@ -82,7 +82,7 @@ namespace Welcome.Controllers
                 Name="JarnacLite Translator", 
                 Extension=".jan", 
                 MimeType="application/jarnac", 
-                Translate = (sbml) => ExecuteProgram(@"C:\Program Files (x86)\KGI\SBW\JarnacLite\JarnacLiteConsole.exe", sbml, "", "")                
+                Translate = (sbml) => ExecuteProgram(@"E:\Program Files (x86)\KGI\SBW\JarnacLite\JarnacLiteConsole.exe", sbml, "", "")                
             },
             new Translator { 
                 Key="java", 

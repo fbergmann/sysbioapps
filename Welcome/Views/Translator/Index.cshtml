@@ -140,17 +140,17 @@
 
         function loadModel() {
             var translator = $('#combobox').val();
-            updateTranslation("/Translator/UpdateTranslation?translator=" + translator +"&");
+            updateTranslation("./Translator/UpdateTranslation?translator=" + translator +"&");
         };
 
         function downloadFile() {
             var translator = $('#combobox').val();
-            window.open("/Translator/DownloadTranslation?translator=" + translator + "&" + new Date().getTime());
+            window.open("./Translator/DownloadTranslation?translator=" + translator + "&" + new Date().getTime());
         };
 
         function loadFile(file) {
             var translator = $('#combobox').val();
-            updateTranslation("/Translator/UpdateTranslation?translator=" + translator +
+            updateTranslation("./Translator/UpdateTranslation?translator=" + translator +
             "&file=" + file + "&");
         };
 
@@ -326,7 +326,7 @@
         <table border="0" cellpadding="0" cellspacing="0" width="100%">
             <tr>
                 <td width="50%">
-                    <input type="text" id="url" name="url" style="width: 100%" size="63"></input>
+                  <input type="text" id="url" name="url" style="width: 100%" size="63"/>
                 </td>
                 <td width="50%" align="right">
                     <input type="submit"  class="button" value="Translate" />

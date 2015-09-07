@@ -41,7 +41,7 @@ namespace Welcome
             RegisterGlobalFilters(GlobalFilters.Filters);
             RegisterRoutes(RouteTable.Routes);
 
-            Util.SVG_FileDirectory = @"C:\Program Files (x86)\KGI\SBW\Layout";
+            Util.SVG_FileDirectory = @"E:\Program Files (x86)\KGI\SBW\Layout";
             SBML2TikZ.Converter.LatexFileName = @"c:\mik-portable\miktex\bin\pdflatex.exe";
             SBML2TikZ.Converter.TempPath = @"c:\Temp";
 
