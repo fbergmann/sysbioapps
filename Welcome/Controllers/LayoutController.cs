@@ -29,7 +29,7 @@ namespace Welcome.Controllers
             public string url { get; set; }
         }
 
-        public Collection<Layout> AllLayouts 
+        public Collection<Layout> AllLayouts
         {
             get
             {
@@ -62,10 +62,10 @@ namespace Welcome.Controllers
             }
         }
 
-        public Layout CurrentLayout 
+        public Layout CurrentLayout
         {
             get
-            {                
+            {
                 if (Session["layout"] == null)
                 {
                     Session["layout"] = new Layout();
@@ -80,9 +80,9 @@ namespace Welcome.Controllers
 
         public string SBML
         {
-            get 
+            get
             {
-                return (string)Session["sbml"]; 
+                return (string)Session["sbml"];
             }
             set
             {
@@ -90,33 +90,44 @@ namespace Welcome.Controllers
             }
         }
 
+        public static string AppPath { get; set; }
+
+        public static string VAppPath { get; set; }
+        
+
         public JsonResult JQueryUpload()
         {
             var r = new List<ViewDataUploadFilesResult>();
             try
             {
+                VAppPath = HttpRuntime.AppDomainAppVirtualPath;
+                if (VAppPath == "/") VAppPath = "";
+
                 for (int i = 0; i < Request.Files.Count; i++)
                 {
                     var hpf = Request.Files[i];
                     if (hpf == null || hpf.ContentLength == 0) continue;
                     string fileName = hpf.FileName;
-                    var savedFileName = this.Server.MapPath("~/Uploads/" + Path.GetFileName(fileName));
+                    AppPath = this.Server.MapPath("~/");
+                    var savedFileName = Server.MapPath("~/Uploads/" + Path.GetFileName(fileName));
                     hpf.SaveAs(savedFileName);
 
                     string lowerCasefileName = Path.GetExtension(savedFileName).ToLowerInvariant();
                     if (lowerCasefileName.EndsWith("xml") || lowerCasefileName.EndsWith("sbml") || lowerCasefileName.EndsWith("sbgn"))
                     {
-                        SBML = System.IO.File.ReadAllText(savedFileName);                        
+                        SBML = System.IO.File.ReadAllText(savedFileName);
                     }
 
                     r.Add(new ViewDataUploadFilesResult
-                              {
-                                  thumbnail_url = String.Format("/Layout/PreviewImage?file={0}", Path.GetFileName(fileName)),
-                                  url = String.Format("javascript:loadFile('{0}')", Path.GetFileName(fileName)),
-                                  name = fileName,
-                                  length = hpf.ContentLength,
-                                  type = hpf.ContentType
-                              });
+                    {
+                        
+
+                        thumbnail_url = String.Format(VAppPath  +  "/Layout/PreviewImage" + "?file={0}", Path.GetFileName(fileName)),
+                        url = String.Format("javascript:loadFile('{0}')", Path.GetFileName(fileName)),
+                        name = fileName,
+                        length = hpf.ContentLength,
+                        type = hpf.ContentType
+                    });
                 }
             }
             catch (Exception ex)
@@ -167,49 +178,154 @@ namespace Welcome.Controllers
                         return item;
                 }
                 if (all.Count > 0)
-                return all[0];
+                    return all[0];
                 return new Layout();
-                
+
             }
         }
 
         private static string GenerateLayout(string sbml, double gravity = 15, double stiffness = 30, bool magnetism = false, bool boundary = false, bool grid = false, string type = "many")
         {
-          try
-          {
-            var network = new AutoLayout.DrawNetwork();
-            network.loadSBML(sbml);
-            sbml = network.generateLayout(
-              gravity,
-              stiffness,
-              magnetism,
-              boundary,
-              grid,
-              type == "sourcesink",
-              type == "one",
-              type == "many"
-              );
-          }
-          catch
-          {
-            Debug.WriteLine("AutoLayout failed ... ");
-          }
-          return sbml;
+            try
+            {
+                Debug.WriteLine("GenerateLayout");
+                string tmpfile = Path.GetTempFileName();
+                System.IO.File.WriteAllText(tmpfile, sbml);
+                var saveLayoutExecutable = Path.Combine(AppPath, "bin", "SaveLayout.exe");
+                if (!System.IO.File.Exists(saveLayoutExecutable))
+                {
+                    Debug.WriteLine("Layout Executable not found in: " + saveLayoutExecutable);
+                    throw new SBW.SBWApplicationException("Layout executable not found.");
+                }
+
+                var psInfo = new ProcessStartInfo(saveLayoutExecutable);
+                psInfo.Arguments = "-f " + tmpfile + " -r " +
+                    " -g " + gravity.ToString() +
+                    " -l " + stiffness.ToString() +
+                    " -o " + AppPath + "/Uploads/";
+                if (magnetism)
+                    psInfo.Arguments += " -magnetism";
+                if (boundary)
+                    psInfo.Arguments += " -boundary";
+                if (grid)
+                    psInfo.Arguments += " -grid";
+
+                if (type == "sourcesink")
+                    psInfo.Arguments += " -sourceSink";
+
+                if (type == "one")
+                    psInfo.Arguments += " -emptySet";
+
+                if (type == "many")
+                    psInfo.Arguments += " -emptySets";
+
+                psInfo.UseShellExecute = false;
+                psInfo.CreateNoWindow = true;
+                psInfo.RedirectStandardOutput = true;
+                psInfo.RedirectStandardError = true;
+
+                var process = Process.Start(psInfo);
+                process.WaitForExit(10000);
+
+                if (!process.HasExited)
+                {                    
+                    throw new SBW.SBWApplicationException("Timeout during autolayout. Currently only 10 seconds are allowed for layout.");
+                }
+
+                string stdout = process.StandardOutput.ReadToEnd();
+                string stderr = process.StandardError.ReadToEnd();
+
+                string outfile = AppPath + "/Uploads/" + Path.GetFileName(tmpfile) + "_layout.xml";
+                if (!System.IO.File.Exists(outfile))
+                {
+                    throw new SBW.SBWApplicationException("Autolayout could not produce an output file.", stderr);
+                }
+
+
+                sbml = System.IO.File.ReadAllText(outfile);
+
+                try
+                {
+                    System.IO.File.Delete(outfile);
+                }
+                catch
+                {
+
+                }
+
+            }
+            catch (SBW.SBWApplicationException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                Debug.WriteLine(ex.StackTrace);
+                throw new SBW.SBWApplicationException("Could not create a layout for this model");
+            }
+
+
+            //try
+            //{
+            //  var network = new AutoLayout.DrawNetwork();
+            //  network.loadSBML(sbml);
+            //  sbml = network.generateLayout(
+            //    gravity,
+            //    stiffness,
+            //    magnetism,
+            //    boundary,
+            //    grid,
+            //    type == "sourcesink",
+            //    type == "one",
+            //    type == "many"
+            //    );
+            //      network = null;
+            //      SBMLSupport.NOM.FreeDocument();
+            //      GC.Collect();
+            //}
+            //catch(SBW.SBWApplicationException ex)
+            //{
+            //  Debug.WriteLine("AutoLayout failed ... with " + ex.Message + " " + ex.DetailedMessage);
+            //  Debug.WriteLine(ex.StackTrace);
+            //  }
+            //  catch
+            //  {
+            //      Debug.WriteLine("AutoLayout failed ... ");
+            //  }
+            return sbml;
         }
         public ContentResult DoLayout(bool sbgn = false, double gravity = 15, double stiffness = 30, bool magnetism = false, bool boundary = false, bool grid = false, string type = "many")
         {
+            Debug.WriteLine("DoLayout");
+
+            VAppPath = HttpRuntime.AppDomainAppVirtualPath;
+            if (VAppPath == "/") VAppPath = "";
+
+            try
+            { 
             string sbml = Util.writeLayout(CurrentLayout);
             CurrentLayout = Util.readLayout(GenerateLayout(sbml, gravity, stiffness, magnetism, boundary, grid, type), sbgn);
             AllLayouts = Util.Layouts;
             SelectedLayoutId = CurrentLayout.ID;
-            return Content(String.Format("<a target='_blank' style='border: none;' href='/Layout/ImageWithScale?scale=1&{0}'><img src='/Layout/ImageWithDimensions?height=300&width=500&{0}' alt='Image' /></a>", DateTime.Now.Ticks));
+            return Content(String.Format("<a target='_blank' style='border: none;' href='{1}/Layout/ImageWithScale?scale=1&{0}'><img src='{1}/Layout/ImageWithDimensions?height=300&width=500&{0}' alt='Image' /></a>", DateTime.Now.Ticks, VAppPath));
+            }
+            catch(SBW.SBWApplicationException ex)
+            {
+                return
+                 Content(
+                   String.Format(
+                     "<h2>Error</h2><p>{0}</p><pre>{1}</pre><p>If this problem persists, please notify the author.</p>",
+                     ex.Message, ex.StackTrace));
+            }
         }
 
         private string GetCurrentSBML(string file = "")
         {
+            Debug.WriteLine("GetCurrentSBML");
             string sbml;
 
-            if (string.IsNullOrEmpty(file) )
+            if (string.IsNullOrEmpty(file))
             {
                 sbml = SBML;
             }
@@ -230,33 +346,36 @@ namespace Welcome.Controllers
 
         public ContentResult UpdateImage(string file = "", bool sbgn = false)
         {
-          try
-          {
-            string sbml = GetCurrentSBML(file);
-            CurrentLayout = Util.readLayout(sbml, sbgn);
-            AllLayouts = Util.Layouts;
-
-            if (!CurrentLayout.hasLayout())
+            try
             {
-              CurrentLayout = Util.readLayout(GenerateLayout(sbml), sbgn);
-              AllLayouts = Util.Layouts;
-              SelectedLayoutId = CurrentLayout.ID;
-            }
+                VAppPath = HttpRuntime.AppDomainAppVirtualPath;
+                if (VAppPath == "/") VAppPath = "";
 
-            return
-              Content(
-                String.Format(
-                  "<a target='_blank' style='border: none;' href='/Layout/ImageWithScale?scale=1&{0}'><img src='/Layout/ImageWithDimensions?height=300&width=500&{0}' alt='Image' /></a>",
-                  DateTime.Now.Ticks));
-          }
-          catch (Exception ex)
-          {
-            return
-              Content(
-                String.Format(
-                  "<h2>Error</h2><p>{0}</p><pre>{1}</pre><p>If this problem persists, please notify the author.</p>",
-                  ex.Message, ex.StackTrace));
-          }
+                string sbml = GetCurrentSBML(file);
+                CurrentLayout = Util.readLayout(sbml, sbgn);
+                AllLayouts = Util.Layouts;
+
+                if (!CurrentLayout.hasLayout())
+                {
+                    CurrentLayout = Util.readLayout(GenerateLayout(sbml), sbgn);
+                    AllLayouts = Util.Layouts;
+                    SelectedLayoutId = CurrentLayout.ID;
+                }
+
+                return
+                  Content(
+                    String.Format(
+                      "<a target='_blank' style='border: none;' href='{1}/Layout/ImageWithScale?scale=1&{0}'><img src='{1}/Layout/ImageWithDimensions?height=300&width=500&{0}' alt='Image' /></a>",
+                      DateTime.Now.Ticks, VAppPath));
+            }
+            catch (Exception ex)
+            {
+                return
+                  Content(
+                    String.Format(
+                      "<h2>Error</h2><p>{0}</p><pre>{1}</pre><p>If this problem persists, please notify the author.</p>",
+                      ex.Message, ex.StackTrace));
+            }
         }
 
         private static FileResult ToFileResult(Image image, string fileName = "layout.png")
@@ -282,7 +401,7 @@ namespace Welcome.Controllers
         public FileResult SVG()
         {
             string svgContent = Util.ToSVG(SelectedLayout);
-            return new FileContentResult(System.Text.Encoding.UTF8.GetBytes(svgContent) , "image/svg+xml") { FileDownloadName = "layout.svg" };
+            return new FileContentResult(System.Text.Encoding.UTF8.GetBytes(svgContent), "image/svg+xml") { FileDownloadName = "layout.svg" };
         }
 
         public FileResult GetSBML()
@@ -295,12 +414,12 @@ namespace Welcome.Controllers
 
         public FileResult TikZ()
         {
-            var converter = new Converter {Layout = CurrentLayout, specs = new RenderSpecs(CurrentLayout)};
+            var converter = new Converter { Layout = CurrentLayout, specs = new RenderSpecs(CurrentLayout) };
             var tex = converter.ToTex(SelectedLayout);
 
             return new FileContentResult(System.Text.Encoding.UTF8.GetBytes(tex), "application/x-tex")
             {
-                 FileDownloadName="layout.tex"
+                FileDownloadName = "layout.tex"
             };
         }
 
@@ -345,75 +464,75 @@ namespace Welcome.Controllers
 
         public ActionResult GetLayoutSBML(HttpPostedFileBase file)
         {
-          if (file == null)
-            return new HttpNotFoundResult();
-          try
-          {
-            string sbml = "";
-            using (var reader = new StreamReader(file.InputStream))
+            if (file == null)
+                return new HttpNotFoundResult();
+            try
             {
-              sbml = reader.ReadToEnd();
+                string sbml = "";
+                using (var reader = new StreamReader(file.InputStream))
+                {
+                    sbml = reader.ReadToEnd();
+                }
+
+                var layout = Util.readLayout(sbml);
+                if (!layout.hasLayout())
+                {
+                    sbml = GenerateLayout(sbml);
+                }
+
+                sbml = Util.writeLayout(layout);
+
+                return new FileContentResult(System.Text.Encoding.UTF8.GetBytes(sbml), "application/sbml+xml")
+                {
+                    FileDownloadName = "layout.xml"
+                };
             }
-
-            var layout = Util.readLayout(sbml);
-            if (!layout.hasLayout())
+            catch
             {
-              sbml = GenerateLayout(sbml);                        
+                return new HttpNotFoundResult();
             }
-
-            sbml = Util.writeLayout(layout);
-
-            return new FileContentResult(System.Text.Encoding.UTF8.GetBytes(sbml), "application/sbml+xml")
-            {
-              FileDownloadName = "layout.xml"
-            };
-          }
-          catch
-          {
-            return new HttpNotFoundResult();
-          }
         }
 
-        public ActionResult GenerateImage(HttpPostedFileBase file, float? scale = null, double? width = null, double? height = null)        
+        public ActionResult GenerateImage(HttpPostedFileBase file, float? scale = null, double? width = null, double? height = null)
         {
-          if (file == null)
-            return new HttpNotFoundResult();
-          try
-          {
-            string sbml = "";
-            using (var reader = new StreamReader(file.InputStream))
+            if (file == null)
+                return new HttpNotFoundResult();
+            try
             {
-              sbml = reader.ReadToEnd();
+                string sbml = "";
+                using (var reader = new StreamReader(file.InputStream))
+                {
+                    sbml = reader.ReadToEnd();
+                }
+
+                var layout = Util.readLayout(sbml);
+                if (!layout.hasLayout())
+                {
+                    sbml = GenerateLayout(sbml);
+                }
+
+                layout = Util.readLayout(sbml);
+                Image image = null;
+                if (scale.HasValue)
+                    image = layout.ToImage(scale.Value);
+                else if (width.HasValue && height.HasValue)
+                    image = layout.ToImage(width.Value, height.Value);
+                else
+                    image = layout.ToImage(2f);
+
+                var stream = new MemoryStream();
+                image.Save(stream, ImageFormat.Png);
+
+                return new FileContentResult(stream.ToArray(), "image/png")
+                {
+                    FileDownloadName = "image.png"
+                };
+            }
+            catch
+            {
+                return new HttpNotFoundResult();
             }
 
-            var layout = Util.readLayout(sbml);
-            if (!layout.hasLayout())
-            {
-              sbml = GenerateLayout(sbml);
-            }
-
-            layout = Util.readLayout(sbml);
-            Image image = null;
-            if (scale.HasValue)
-              image = layout.ToImage(scale.Value);
-            else if (width.HasValue && height.HasValue)
-              image = layout.ToImage(width.Value, height.Value);
-            else
-              image = layout.ToImage(2f);
-
-            var stream = new MemoryStream();
-            image.Save(stream, ImageFormat.Png);
-
-            return new FileContentResult(stream.ToArray(), "image/png")
-            {
-              FileDownloadName = "image.png"
-            };
-          }
-          catch
-          {
-            return new HttpNotFoundResult();
-          }
-          
         }
 
         public static void compiletoPDF(out Boolean compiled, string texfilename)
@@ -482,12 +601,12 @@ namespace Welcome.Controllers
                     {
                         Directory.Delete(tempDir, true);
                     }
-                    catch (Exception )
+                    catch (Exception)
                     {
-                        
+
                     }
                     return PDFdata;
-                    
+
                 }
                 catch (Exception ex)
                 {
@@ -497,7 +616,7 @@ namespace Welcome.Controllers
                     {
                         Directory.Delete(tempDir, true);
                     }
-                    catch (Exception )
+                    catch (Exception)
                     {
 
                     }
@@ -508,7 +627,7 @@ namespace Welcome.Controllers
             {
                 Directory.Delete(tempDir, true);
             }
-            catch (Exception )
+            catch (Exception)
             {
 
             }

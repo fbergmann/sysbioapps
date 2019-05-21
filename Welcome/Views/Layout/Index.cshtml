@@ -21,7 +21,7 @@
         var boundary = $('#chkBoundary').is(':checked');
         var grid = $('#chkGrid').is(':checked');
 
-        updateImage("/Layout/DoLayout?gravity=" + gravity +
+        updateImage("@Url.Action("DoLayout")"  + "?gravity=" + gravity +
             "&sbgn=" + sbgn +
             "&stiffness=" + stiffness +
             "&type=" + missing +
@@ -33,18 +33,18 @@
 
     function loadModel() {
         var sbgn = $('#chkOverWriteRendering').is(':checked');
-        updateImage("/Layout/UpdateImage?sbgn=" + sbgn + "&");
+        updateImage("@Url.Action("UpdateImage")?sbgn="  + sbgn + "&");
     };
 
     function loadFile(file) {
         var sbgn = $('#chkOverWriteRendering').is(':checked');
-        updateImage("/Layout/UpdateImage?sbgn=" + sbgn + 
+        updateImage("@Url.Action("UpdateImage")?sbgn=" + sbgn + 
             "&file=" + file + "&");
     };
 
 
     function updateImage(url) {
-        $('#layoutImage').html('<div style="vertical-align:middle;text-align:center"><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p> <img style="vertical-align:middle" src="/Content/wait.gif"/><span style="">&nbsp;Loading...</span></div>');
+        $('#layoutImage').html('<div style="vertical-align:middle;text-align:center"><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p> <img style="vertical-align:middle" src="' + "@Url.Content("~/Content/wait.gif")" + '"/><span style="">&nbsp;Loading...</span></div>');
         $('#layoutImage').load(url + new Date().getTime());
     };
 
